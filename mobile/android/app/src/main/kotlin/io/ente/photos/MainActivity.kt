@@ -182,6 +182,23 @@ class MainActivity : FlutterFragmentActivity() {
         finishAndRemoveTask()
     }
 
+    override fun onResume() {
+        super.onResume()
+        Log.d("UpEnte", "MainActivity resumed - user returned from gallery app or other activity")
+        
+        // Only notify Flutter if the channel is ready and Flutter engine is configured
+        if (methodChannel != null && ::methodChannelHandler.isInitialized) {
+            try {
+                methodChannel?.invokeMethod("onAppResumed", null)
+                Log.d("UpEnte", "Successfully notified Flutter of app resume")
+            } catch (e: Exception) {
+                Log.w("UpEnte", "Failed to notify Flutter of app resume", e)
+            }
+        } else {
+            Log.d("UpEnte", "MethodChannel not ready yet, skipping onAppResumed notification")
+        }
+    }
+
     override fun onStart() {
         super.onStart()
         accountManager = AccountManager.get(this)

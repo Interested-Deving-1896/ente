@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
+import android.provider.MediaStore
+import java.io.File
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -14,6 +16,7 @@ import io.flutter.plugin.common.MethodChannel.Result
 class MethodChannelHandler {
     private lateinit var loginChannel: MethodChannel
     private lateinit var supportChannel: MethodChannel
+    private lateinit var galleryChannel: MethodChannel
     private lateinit var context: Context
 
     fun onAttachedToEngine(binaryMessenger: BinaryMessenger, context: Context) {
@@ -26,11 +29,16 @@ class MethodChannelHandler {
         // Support channel handler
         supportChannel = MethodChannel(binaryMessenger, "support_channel")
         supportChannel.setMethodCallHandler(SupportMethodCallHandler())
+        
+        // Gallery channel handler - for opening external gallery apps
+        galleryChannel = MethodChannel(binaryMessenger, "ente_gallery_channel")
+        galleryChannel.setMethodCallHandler(GalleryMethodCallHandler())
     }
 
     fun onDetachedFromEngine() {
         loginChannel.setMethodCallHandler(null)
         supportChannel.setMethodCallHandler(null)
+        galleryChannel.setMethodCallHandler(null)
     }
 
     // Login channel handler
@@ -102,6 +110,7 @@ class MethodChannelHandler {
                         result.error("GALLERY_APP_ERROR", "Failed to open gallery app", e.message)
                     }
                 }
+                // openGalleryAppForEdit moved to ente_gallery_channel
                 "destroyApp" -> {
                     try {
                         Log.d("UpEnte", "Destroying app completely")
@@ -152,6 +161,88 @@ class MethodChannelHandler {
                     } catch (e: Exception) {
                         Log.e("UpEnte", "Failed to open support app", e)
                         result.error("SUPPORT_APP_ERROR", "Failed to open support app", e.message)
+                    }
+                }
+                else -> {
+                    result.notImplemented()
+                }
+            }
+        }
+    }
+
+    // Gallery channel handler
+    private inner class GalleryMethodCallHandler : MethodCallHandler {
+        override fun onMethodCall(call: MethodCall, result: Result) {
+            when (call.method) {
+                "openGalleryAppForEdit" -> {
+                    try {
+                        val photoPath = call.argument<String>("photoPath")
+                        if (photoPath.isNullOrEmpty()) {
+                            result.error("INVALID_PATH", "Photo path is required", null)
+                            return
+                        }
+                        
+                        val photoFile = File(photoPath)
+                        if (!photoFile.exists()) {
+                            result.error("FILE_NOT_FOUND", "Photo file not found", null)
+                            return
+                        }
+                        
+                        // Find MediaStore URI for this specific image
+                        val projection = arrayOf(MediaStore.Images.Media._ID)
+                        val selection = "${MediaStore.Images.Media.DATA} = ?"
+                        val selectionArgs = arrayOf(photoPath)
+                        
+                        val cursor = context.contentResolver.query(
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                            projection,
+                            selection,
+                            selectionArgs,
+                            null
+                        )
+                        
+                        val photoUri = if (cursor?.moveToFirst() == true) {
+                            val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+                            cursor.close()
+                            Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id.toString())
+                        } else {
+                            cursor?.close()
+                            result.error("IMAGE_NOT_IN_MEDIASTORE", "Image not found in MediaStore", null)
+                            return
+                        }
+                        
+                        // Detect MIME type from file extension
+                        val mimeType = when (photoFile.extension.lowercase()) {
+                            "jpg", "jpeg" -> "image/jpeg"
+                            "png" -> "image/png"
+                            "webp" -> "image/webp"
+                            "gif" -> "image/gif"
+                            "bmp" -> "image/bmp"
+                            else -> "image/*"
+                        }
+                        
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            setDataAndType(photoUri, mimeType)
+                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                        }
+                        
+                        val packageManager = context.packageManager
+                        val resolveInfos = packageManager.queryIntentActivities(intent, 0)
+                        
+                        if (resolveInfos.size == 1) {
+                            context.startActivity(intent)
+                        } else {
+                            val chooserIntent = Intent.createChooser(intent, "Open image with").apply {
+                                putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(
+                                    android.content.ComponentName("com.unplugged.photos", "io.ente.photos.MainActivity")
+                                ))
+                            }
+                            context.startActivity(chooserIntent)
+                        }
+                        result.success(true)
+                        
+                    } catch (e: Exception) {
+                        result.error("OPEN_IMAGE_ERROR", "Failed to open image", e.message)
                     }
                 }
                 else -> {
