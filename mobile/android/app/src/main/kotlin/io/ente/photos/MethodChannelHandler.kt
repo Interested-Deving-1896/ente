@@ -221,7 +221,7 @@ class MethodChannelHandler {
                             else -> "image/*"
                         }
                         
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                        val intent = Intent(Intent.ACTION_EDIT).apply {
                             setDataAndType(photoUri, mimeType)
                             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                         }
@@ -232,7 +232,7 @@ class MethodChannelHandler {
                         if (resolveInfos.size == 1) {
                             context.startActivity(intent)
                         } else {
-                            val chooserIntent = Intent.createChooser(intent, "Open image with").apply {
+                            val chooserIntent = Intent.createChooser(intent, "Edit image with").apply {
                                 putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(
                                     android.content.ComponentName("com.unplugged.photos", "io.ente.photos.MainActivity")
                                 ))
