@@ -262,6 +262,20 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       }
     });
 
+    // Add MethodChannel handler for app resume (when returning from gallery app)
+    const MethodChannel _appResumeChannel = MethodChannel('com.unplugged.photos/account');
+    _appResumeChannel.setMethodCallHandler((call) async {
+      if (call.method == 'onAppResumed') {
+        _logger.info('[DEBUG] App resumed - user returned from gallery app or other activity');
+        
+        try {     
+          _logger.info('[DEBUG] App resume handled successfully');
+        } catch (e, stackTrace) {
+          _logger.warning('[DEBUG] Error handling app resume', e, stackTrace);
+        }
+      }
+    });
+
     if (Platform.isAndroid &&
         !localSettings.hasConfiguredInAppLinkPermissions() &&
         RemoteSyncService.instance.isFirstRemoteSyncDone() &&

@@ -12,6 +12,7 @@ import 'package:photos/models/file/file.dart';
 import 'package:photos/models/file/file_type.dart';
 import 'package:photos/models/file/trash_file.dart';
 import 'package:photos/models/selected_files.dart';
+import "package:photos/services/gallery_edit_service.dart";
 
 import "package:photos/ui/actions/file/file_actions.dart";
 import 'package:photos/ui/collections/collection_action_sheet.dart';
@@ -123,8 +124,14 @@ class FileBottomBarState extends State<FileBottomBar> {
                   Icons.tune_outlined,
                   color: Colors.white,
                 ),
-                onPressed: () {
-                  widget.onEditRequested(widget.file);
+                onPressed: () async {
+                  final success =
+                      await GalleryEditService.openGalleryAppForEdit(
+                          widget.file,);
+                  if (!success) {
+                    // Fallback to original edit behavior if gallery app fails to open
+                    widget.onEditRequested(widget.file);
+                  }
                 },
               ),
             ),
