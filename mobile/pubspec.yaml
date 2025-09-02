@@ -52,13 +52,13 @@ dependencies:
   email_validator: ^2.0.1
   encrypt: ^5.0.3
   ente_cast:
-    path: plugins/ente_cast
+    path: apps/photos/plugins/ente_cast
   ente_cast_normal:
-    path: plugins/ente_cast_normal
+    path: apps/photos/plugins/ente_cast_normal
   ente_crypto:
-    path: plugins/ente_crypto
+    path: apps/photos/plugins/ente_crypto
   ente_feature_flag:
-    path: plugins/ente_feature_flag
+    path: apps/photos/plugins/ente_feature_flag
   equatable: ^2.0.5
   event_bus: ^2.0.0
   exif: ^3.0.0
@@ -142,7 +142,7 @@ dependencies:
   native_dio_adapter: ^1.4.0
   native_video_player: ^3.0.0-dev.4
   onnx_dart:
-    path: plugins/onnx_dart
+    path: apps/photos/plugins/onnx_dart
   onnxruntime:
     git:
       url: https://github.com/ente-io/onnxruntime.git
@@ -169,7 +169,7 @@ dependencies:
     git:
       url: https://github.com/eddyuan/privacy_screen.git
       ref: 855418e
-  protobuf: ^3.1.0
+  protobuf: ^4.0.0
   receive_sharing_intent: # pub.dev is behind
     git:
       url: https://github.com/KasemJaffer/receive_sharing_intent.git
