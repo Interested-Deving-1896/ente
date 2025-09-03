@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	"github.com/ente-io/museum/pkg/controller/commonbilling"
+	"github.com/ente-io/museum/pkg/utils"
 	"github.com/ente-io/museum/pkg/utils/billing"
-	"github.com/ente-io/museum/pkg/utils/crypto"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
@@ -32,6 +32,7 @@ type UPBillingController struct {
 	UsageRepo         *repo.UsageRepository
 	UPStoreController *UPStoreController
 	CommonBillCtrl    *commonbilling.Controller
+	UserUtils         *utils.User
 	HashingKey        []byte
 }
 
@@ -41,6 +42,7 @@ func NewUPBillingController(
 	userRepo *repo.UserRepository,
 	usageRepo *repo.UsageRepository,
 	upStoreController *UPStoreController,
+	userUtils *utils.User,
 	hashingKey []byte,
 ) *UPBillingController {
 	return &UPBillingController{
@@ -196,44 +198,14 @@ func (c *UPBillingController) handleSubscriptionUpdated(reqBody *ente.WebhookReq
 
 	// Get username from webhook request
 	username := reqBody.Username
+	userID, username, err := c.UserUtils.GetUserID(username)
 	log.Infof("reqBody.Username: %s", username)
-	// Try to find user by username
-	emailHash, err := crypto.GetHash(username, c.HashingKey)
-	log.Infof("reqBody.Username: %s", username)
+
+	// Verify and update the subscription for the user
+	_, err = c.UPVerifySubscription(userID)
 	if err != nil {
-		return stacktrace.Propagate(err, "failed to hash username")
+		log.Errorf("failed to verify subscription for user: %s, Err: %s", username, err)
+		return stacktrace.Propagate(err, "failed to verify subscription for user")
 	}
-
-	user, errShort := c.UserRepo.GetUserByEmailHash(emailHash)
-
-	if errShort != nil {
-		// If user not found, try with email format (username@domain)
-		log.Infof("user not found c.UserRepo.GetUserByEmailHash(emailHash): %s", err)
-
-		emailUsername := username + "@" + viper.GetString("unplugged.email-host")
-		emailHashAlt, errAlt := crypto.GetHash(emailUsername, c.HashingKey)
-		if errAlt != nil {
-			return stacktrace.Propagate(err, "failed to hash email username")
-		}
-		emailUser, errUser := c.UserRepo.GetUserByEmailHash(emailHashAlt)
-		if errUser != nil {
-			log.Errorf("emailUser not found c.UserRepo.GetUserByEmailHash(emailHashAlt): %s", err)
-			return stacktrace.Propagate(err, "failed to get user by emailUser hash")
-		}
-		log.Infof("emailUser username: %s, ID: %s", emailUser.Email, emailUser.ID)
-		_, errVerify := c.UPVerifySubscription(emailUser.ID)
-		if errVerify != nil {
-			log.Errorf("failed to verify subscription for emailUser: %s, Err: %s", emailUser.Email, err)
-			return stacktrace.Propagate(err, "failed to verify subscription for emailUser")
-		}
-	} else {
-		// Verify and update the subscription for the user
-		_, err = c.UPVerifySubscription(user.ID)
-		if err != nil {
-			log.Errorf("failed to verify subscription for user: %s, Err: %s", user.Email, err)
-			return stacktrace.Propagate(err, "failed to verify subscription for user")
-		}
-	}
-
 	return nil
 }

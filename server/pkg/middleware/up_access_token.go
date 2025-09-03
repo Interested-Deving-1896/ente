@@ -2,22 +2,24 @@ package middleware
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/ente-io/museum/pkg/utils"
 	"github.com/ente-io/museum/pkg/utils/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	// PreferredUsernameKey is the key used to store the preferred username in the context
-	PreferredUsernameKey = "preferred_username"
-)
+// UpUsernameHeader is the key used to store the preferred username in the context
+const UpUsernameHeader = "X-UP-Username"
+const AuthUserID = "X-Auth-User-ID"
 
 // UPAccessTokenMiddleware intercepts and authenticates incoming requests using JWT tokens
 type UPAccessTokenMiddleware struct {
 	JWTValidator *auth.JWTValidator
 	Cache        *cache.Cache
+	UserUtils    *utils.User
 }
 
 // UPAccessTokenAuthMiddleware returns a middleware that extracts the token from the Authorization header
@@ -57,9 +59,10 @@ func (m *UPAccessTokenMiddleware) UPAccessTokenAuthMiddleware() gin.HandlerFunc 
 			username = claims.PreferredUsername
 			m.Cache.Set(cacheKey, username, cache.DefaultExpiration)
 		}
-
+		userID, username, _ := m.UserUtils.GetUserID(username.(string))
 		// Set the preferred username in the context
-		c.Set(PreferredUsernameKey, username)
+		c.Request.Header.Set(UpUsernameHeader, username.(string))
+		c.Request.Header.Set(AuthUserID, strconv.FormatInt(userID, 10))
 		logrus.Infof("UPAccessTokenAuthMiddleware: authenticated user with preferred username %s", username)
 		c.Next()
 	}
