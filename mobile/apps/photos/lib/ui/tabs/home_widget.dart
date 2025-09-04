@@ -828,7 +828,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                         selectedFiles: _selectedFiles,
                       ),
                 UserCollectionsTab(selectedAlbums: _selectedAlbums),
-                _sharedCollectionTab,
+                // _sharedCollectionTab,
                 _searchTab,
               ],
             );
