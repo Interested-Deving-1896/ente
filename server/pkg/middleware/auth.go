@@ -93,6 +93,7 @@ func (m *AuthMiddleware) TokenAuthMiddleware(jwtClaimScope *jwt.ClaimScope) gin.
 func (m *AuthMiddleware) AdminAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := auth.GetUserID(c.Request.Header)
+		logrus.Infof("AdminAuthMiddleware: userID= %d", userID)
 		admins := viper.GetIntSlice("internal.admins")
 		for _, admin := range admins {
 			if int64(admin) == userID {
