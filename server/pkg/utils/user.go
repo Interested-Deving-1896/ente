@@ -41,5 +41,6 @@ func (c *User) GetUserID(upUsername string) (int64, string, error) {
 			return 0, "", stacktrace.Propagate(err, "failed to get user by emailUser hash")
 		}
 	}
+	log.Infof("user found c.UserRepo.GetUserByEmailHash(emailHash): %s, %s", user.ID, upUsername)
 	return user.ID, upUsername, nil
 }

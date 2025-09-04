@@ -103,6 +103,8 @@ func (m *AuthMiddleware) AdminAuthMiddleware() gin.HandlerFunc {
 		// The config allows alternatively specifying a singular admin ID to
 		// workaround Viper issues in passing env vars for an int slice.
 		admin := viper.GetInt("internal.admin")
+		//TODO Remove admin from here
+		logrus.Infof("AdminAuthMiddleware: admin= %d, userID= %d", admin, userID)
 		if len(admins) == 0 && admin != 0 {
 			if int64(admin) == userID {
 				c.Next()
