@@ -48,14 +48,7 @@ class SettingsPage extends StatelessWidget {
     final List<Widget> contents = [];
     const sectionSpacing = SizedBox(height: 8);
     contents.add(
-      GestureDetector(
-        onDoubleTap: () {
-          _showVerifyIdentityDialog(context);
-        },
-        onLongPress: () {
-          _showVerifyIdentityDialog(context);
-        },
-        child: Padding(
+      Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Align(
             alignment: Alignment.centerLeft,
@@ -74,7 +67,6 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
 
     contents.add(const SizedBox(height: 8));
