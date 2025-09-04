@@ -50,6 +50,7 @@ func NewUPBillingController(
 		UserRepo:          userRepo,
 		UsageRepo:         usageRepo,
 		UPStoreController: upStoreController,
+		UserUtils:         userUtils,
 		HashingKey:        hashingKey,
 	}
 }
