@@ -15,7 +15,7 @@ class SupportSectionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return MenuItemWidget(
       captionedTextWidget: CaptionedTextWidget(
-        title: S.of(context).support,
+        title: AppLocalizations.of(context).support,
         makeTextBold: true,
       ),
       leadingIcon: Icons.help_outline_outlined,

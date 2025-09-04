@@ -90,8 +90,6 @@
             android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|uiMode"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-            <!-- Assuming other apps might need to trigger a login -->
-            <!-- This activity can be an entry point if explicitly called by another app, but not from the launcher -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />

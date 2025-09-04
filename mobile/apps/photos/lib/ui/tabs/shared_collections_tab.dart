@@ -11,7 +11,6 @@ import "package:photos/events/tab_changed_event.dart";
 import 'package:photos/events/user_logged_out_event.dart';
 import "package:photos/generated/l10n.dart";
 import 'package:photos/models/collection/collection_items.dart';
-import "package:photos/models/search/generic_search_result.dart";
 import 'package:photos/services/collections_service.dart';
 import "package:photos/services/search_service.dart";
 import "package:photos/theme/ente_theme.dart";
@@ -20,12 +19,9 @@ import "package:photos/ui/collections/collection_list_page.dart";
 import 'package:photos/ui/common/loading_widget.dart';
 import "package:photos/ui/components/buttons/icon_button_widget.dart";
 import 'package:photos/ui/tabs/section_title.dart';
-import "package:photos/ui/tabs/shared/all_quick_links_page.dart";
-import "package:photos/ui/tabs/shared/empty_state.dart";
-import "package:photos/ui/tabs/shared/quick_link_album_item.dart";
 import "package:photos/ui/viewer/gallery/collect_photos_card_widget.dart";
 import "package:photos/ui/viewer/gallery/collection_page.dart";
-import "package:photos/ui/viewer/search_tab/contacts_section.dart";
+import "package:photos/ui/viewer/gallery/empty_state.dart";
 import "package:photos/utils/navigation_util.dart";
 import "package:photos/utils/standalone/debouncer.dart";
 
@@ -121,7 +117,7 @@ class _SharedCollectionsTabState extends State<SharedCollectionsTab>
           if ((snapshot.data?.incoming.length ?? 0) == 0 &&
               (snapshot.data?.quickLinks.length ?? 0) == 0 &&
               (snapshot.data?.outgoing.length ?? 0) == 0) {
-            return const Center(child: SharedEmptyStateWidget());
+            return const EmptyState();
           }
           return SafeArea(child: _getSharedCollectionsGallery(snapshot.data!));
         } else if (snapshot.hasError) {
@@ -214,7 +210,7 @@ class _SharedCollectionsTabState extends State<SharedCollectionsTab>
                           itemCount: collections.incoming.length,
                         ),
                       )
-                    : const IncomingAlbumEmptyState(),
+                    : const EmptyState(),
               ],
             ),
             Column(
@@ -270,26 +266,14 @@ class _SharedCollectionsTabState extends State<SharedCollectionsTab>
                           itemCount: collections.outgoing.length,
                         ),
                       )
-                    : const OutgoingAlbumEmptyState(),
+                    : const EmptyState(),
               ],
             ),
             numberOfQuickLinks > 0
                 ? Column(
                     children: [
                       SectionOptions(
-                        onTap: numberOfQuickLinks > maxQuickLinks
-                            ? () {
-                                unawaited(
-                                  routeToPage(
-                                    context,
-                                    AllQuickLinksPage(
-                                      titleHeroTag: quickLinkTitleHeroTag,
-                                      quickLinks: collections.quickLinks,
-                                    ),
-                                  ),
-                                );
-                              }
-                            : null,
+                        onTap: null, // TODO: Implement AllQuickLinksPage
                         Hero(
                           tag: quickLinkTitleHeroTag,
                           child: SectionTitle(
@@ -329,8 +313,9 @@ class _SharedCollectionsTabState extends State<SharedCollectionsTab>
                               // ignore: unawaited_futures
                               routeToPage(context, page);
                             },
-                            child: QuickLinkAlbumItem(
-                              c: collections.quickLinks[index],
+                            child: AlbumRowItemWidget(
+                              collections.quickLinks[index],
+                              64, // thumbnail size
                             ),
                           );
                         },
@@ -352,9 +337,10 @@ class _SharedCollectionsTabState extends State<SharedCollectionsTab>
                             .getAllContactsSearchResults(kSearchSectionLimit),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
-                            return ContactsSection(
-                              snapshot.data as List<GenericSearchResult>,
-                            );
+                            // return ContactsSection(
+                            //   snapshot.data as List<GenericSearchResult>,
+                            // );
+                            return const SizedBox.shrink();
                           } else if (snapshot.hasError) {
                             _logger.severe(
                               "failed to load contacts section",

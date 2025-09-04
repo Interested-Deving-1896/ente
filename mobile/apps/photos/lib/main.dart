@@ -6,6 +6,7 @@ import "package:computer/computer.dart";
 import 'package:ente_crypto/ente_crypto.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
 import "package:flutter_displaymode/flutter_displaymode.dart";
 import "package:intl/date_symbol_data_local.dart";
@@ -39,14 +40,13 @@ import 'package:photos/services/sync/remote_sync_service.dart';
 import "package:photos/services/sync/sync_service.dart";
 import "package:photos/services/video_preview_service.dart";
 import "package:photos/services/wake_lock_service.dart";
-import "package:photos/src/rust/frb_generated.dart";
+import "package:photos/src/rust/frb_generated.dart" show RustLib;
 import 'package:photos/ui/tools/app_lock.dart';
 import 'package:photos/ui/tools/lock_screen.dart';
 import "package:photos/utils/email_util.dart";
 import 'package:photos/utils/file_uploader.dart';
 import "package:photos/utils/lock_screen_settings.dart";
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 final _logger = Logger("main");
 final ValueNotifier<Account?> accountNotifier = ValueNotifier<Account?>(null);
@@ -62,6 +62,7 @@ const kBGPushTimeout = Duration(seconds: 28);
 const kFGTaskDeathTimeoutInMicroseconds = 5000000;
 bool isProcessBg = true;
 bool _stopHearBeat = false;
+bool _isProcessRunning = false;
 
 Future<void> main() async {
   debugRepaintRainbowEnabled = false;
@@ -110,14 +111,14 @@ Future<void> main() async {
   );
 }
 Future<void> _runInForeground(AdaptiveThemeMode? savedThemeMode) async {
-  return await runWithLogs(() async {
+  return await _runWithLogs(() async {
     _logger.info("Starting app in foreground");
     isProcessBg = false;
     await _init(false, via: 'mainMethod');
     final Locale? locale = await getLocale(noFallback: true);
     runApp(
       AppLock(
-        builder: (args) => EnteApp(_runBackgroundTask, savedThemeMode,  accountNotifier: accountNotifier,),
+        builder: (args) => EnteApp(locale, savedThemeMode, accountNotifier: accountNotifier),
         lockScreen: const LockScreen(),
         enabled: await Configuration.instance.shouldShowLockScreen() ||
             localSettings.isOnGuestView(),
@@ -286,8 +287,8 @@ Future<void> _init(bool isBackground, {String via = ''}) async {
       PersonService.init(entityService, MLDataDB.instance, preferences),
     ]);
 
-    // Initialize services that don't return Future
-    HomeWidgetService.instance.init(preferences);
+    // Initialize services that don't return Future  
+    HomeWidgetService.instance.initHomeWidget();
 
     _logger.info("Parallel initialization done $tlog");
 
@@ -426,7 +427,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     }
   } else {
     // App is dead
-    runWithLogs(
+    _runWithLogs(
       () async {
         _logger.info("Background push received");
         await _init(true, via: 'firebasePush');

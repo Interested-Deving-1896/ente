@@ -152,7 +152,7 @@ class _EnteAppState extends State<EnteApp> with WidgetsBindingObserver {
                                 .instance.mediaExtensionAction.type ==
                             MediaType.video)
                 ? const FileViewer()
-                : const HomeWidget(),
+                : HomeWidget(accountNotifier: widget.accountNotifier),
             debugShowCheckedModeBanner: false,
             builder: EasyLoading.init(),
             locale: locale,
@@ -174,7 +174,7 @@ class _EnteAppState extends State<EnteApp> with WidgetsBindingObserver {
           themeMode: ThemeMode.system,
           theme: lightThemeData,
           darkTheme: darkThemeData,
-          home: const HomeWidget(),
+          home: HomeWidget(accountNotifier: widget.accountNotifier),
           debugShowCheckedModeBanner: false,
           builder: EasyLoading.init(),
           locale: locale,

@@ -10,6 +10,10 @@ import "package:photos/utils/file_uploader.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:workmanager/workmanager.dart" as workmanager;
 
+Future runWithLogs(Function() function, {String prefix = ""}) async {
+  await function();
+}
+
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   workmanager.Workmanager().executeTask((taskName, inputData) async {

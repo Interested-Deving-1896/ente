@@ -28,6 +28,7 @@ import 'package:photos/events/trigger_logout_event.dart';
 import 'package:photos/events/user_logged_out_event.dart';
 import "package:photos/generated/l10n.dart";
 import "package:photos/l10n/l10n.dart";
+import 'package:photos/models/account/Account.dart';
 import "package:photos/models/collection/collection.dart";
 import 'package:photos/models/collection/collection_items.dart';
 import "package:photos/models/file/file.dart";
@@ -61,6 +62,7 @@ import "package:photos/ui/home/loading_photos_widget.dart";
 import 'package:photos/ui/home/start_backup_hook_widget.dart';
 import "package:photos/ui/settings/app_update_dialog.dart";
 import "package:photos/ui/settings_page.dart";
+import "package:photos/ui/tabs/shared_collections_tab.dart";
 import "package:photos/ui/tabs/user_collections_tab.dart";
 import "package:photos/ui/viewer/actions/file_viewer.dart";
 import "package:photos/ui/viewer/file/detail_page.dart";
@@ -75,8 +77,11 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeWidget extends StatefulWidget {
+  final ValueNotifier<Account?>? accountNotifier;
+  
   const HomeWidget({
     super.key,
+    this.accountNotifier,
   });
 
   @override
@@ -743,6 +748,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         return const Center(child: CircularProgressIndicator());
       } else if (_shouldShowLoadingPage) {
         return LoadingPage(
+          accountNotifier: widget.accountNotifier,
           onLoginComplete: () async {
             _logger.info("[DEBUG] onLoginComplete fired");
             final username = Configuration.instance.getUsername();

@@ -67,7 +67,7 @@ class OnnxDartPlugin: FlutterPlugin, MethodCallHandler {
     when (call.method) {
       "getPlatformVersion" -> {
         var env = OrtEnvironment.getEnvironment()
-        var OrtVersion = env.getVersion()
+        var OrtVersion = "1.18.0"
         Log.d(TAG, "Android: ${android.os.Build.VERSION.RELEASE}, OrtVersion: $OrtVersion")
         result.success("Android: ${android.os.Build.VERSION.RELEASE}, OrtVersion: $OrtVersion")
       }

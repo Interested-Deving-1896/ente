@@ -95,8 +95,7 @@ extension SectionTypeExtensions on SectionType {
 
   bool get sortByName =>
       this != SectionType.face &&
-      this != SectionType.magic &&
-      this != SectionType.contacts;
+      this != SectionType.magic;
 
   bool get isEmptyCTAVisible {
     switch (this) {
@@ -239,8 +238,6 @@ extension SectionTypeExtensions on SectionType {
         return [Bus.instance.on<LocationTagUpdatedEvent>()];
       case SectionType.magic:
         return [Bus.instance.on<MagicCacheUpdatedEvent>()];
-      case SectionType.contacts:
-        return [Bus.instance.on<PeopleChangedEvent>()];
       default:
         return [];
     }

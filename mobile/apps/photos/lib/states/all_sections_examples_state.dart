@@ -99,13 +99,10 @@ class _AllSectionsExamplesProviderState
           // Contacts section have been moved to shared collections tab
           // temporarily from search tab. So we can skip computing data here
           // since 'allSectionsExamples' is for search tab sections only.
-          if (sectionType == SectionType.contacts) {
-            allSectionsExamples.add(Future.value([]));
-          } else {
-            allSectionsExamples.add(
-              sectionType.getData(context, limit: kSearchSectionLimit),
-            );
-          }
+
+          allSectionsExamples.add(
+            sectionType.getData(context, limit: kSearchSectionLimit),
+          );
         }
         try {
           allSectionsExamplesFuture = Future.wait<List<SearchResult>>(
