@@ -521,6 +521,7 @@ func main() {
 	userHandler := &api.UserHandler{
 		UserController:      userController,
 		EmergencyController: emergencyCtrl,
+		UserUtils:           userUtils,
 	}
 	publicAPI.POST("/users/ott", userHandler.SendOTT)
 	publicAPI.POST("/users/verify-email", userHandler.VerifyEmail)
