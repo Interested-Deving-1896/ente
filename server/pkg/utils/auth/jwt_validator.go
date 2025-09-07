@@ -13,7 +13,7 @@ import (
 
 // JWTValidator is responsible for validating JWT tokens
 type JWTValidator struct {
-	publicKey *rsa.PublicKey
+	publicKeys []*rsa.PublicKey
 }
 
 // JWTClaims represents the claims in a JWT token
@@ -25,19 +25,28 @@ type JWTClaims struct {
 // NewJWTValidator creates a new JWTValidator instance
 func NewJWTValidator() (*JWTValidator, error) {
 	// Get the public key from the configuration
-	publicKeyPEM := viper.GetString("jwt.public-key")
-	if publicKeyPEM == "" {
-		return nil, stacktrace.Propagate(fmt.Errorf("jwt.public-key not found in configuration"), "")
+	publicKeyPEMs := viper.GetStringSlice("jwt.public-keys")
+	if len(publicKeyPEMs) == 0 {
+		// Fallback to single key for backward compatibility
+		publicKeyPEM := viper.GetString("jwt.public-key")
+		if publicKeyPEM == "" {
+			return nil, stacktrace.Propagate(fmt.Errorf("neither jwt.public-keys nor jwt.public-key found in configuration"), "")
+		}
+		publicKeyPEMs = []string{publicKeyPEM}
 	}
 
-	// Parse the public key
-	publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeyPEM))
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "failed to parse RSA public key")
+	// Parse all public keys
+	var publicKeys []*rsa.PublicKey
+	for i, publicKeyPEM := range publicKeyPEMs {
+		publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeyPEM))
+		if err != nil {
+			return nil, stacktrace.Propagate(err, fmt.Sprintf("failed to parse RSA public key at index %d", i))
+		}
+		publicKeys = append(publicKeys, publicKey)
 	}
 
 	return &JWTValidator{
-		publicKey: publicKey,
+		publicKeys: publicKeys,
 	}, nil
 }
 
@@ -46,34 +55,45 @@ func (v *JWTValidator) ValidateToken(tokenString string) (*JWTClaims, error) {
 	// Remove "Bearer " prefix if present
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
-	// Parse the token
-	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-		// Validate the signing method
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, stacktrace.Propagate(fmt.Errorf("unexpected signing method: %v", token.Header["alg"]), "")
+	var lastErr error
+	// Try validation with each public key
+	for _, publicKey := range v.publicKeys {
+		token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+			// Validate the signing method
+			if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+				return nil, stacktrace.Propagate(fmt.Errorf("unexpected signing method: %v", token.Header["alg"]), "")
+			}
+			return publicKey, nil
+		})
+
+		if err != nil {
+			lastErr = err
+			continue // Try next key
 		}
-		return v.publicKey, nil
-	})
 
-	if err != nil {
-		if ve, ok := err.(*jwt.ValidationError); ok && ve.Error() == "token expired" {
-			return nil, stacktrace.Propagate(ente.NewBadRequestWithMessage("token expired"), "")
+		// Check if the token is valid
+		if !token.Valid {
+			lastErr = fmt.Errorf("invalid token")
+			continue // Try next key
 		}
-		return nil, stacktrace.Propagate(err, "JWT parsed failed")
+
+		// Extract the claims
+		claims, ok := token.Claims.(*JWTClaims)
+		if !ok {
+			lastErr = fmt.Errorf("failed to extract claims")
+			continue // Try next key
+		}
+
+		// Successfully validated with key at index i
+		return claims, nil
 	}
 
-	// Check if the token is valid
-	if !token.Valid {
-		return nil, stacktrace.Propagate(fmt.Errorf("invalid token"), "")
+	// If we get here, validation failed with all keys
+	if ve, ok := lastErr.(*jwt.ValidationError); ok && ve.Error() == "token expired" {
+		return nil, stacktrace.Propagate(ente.NewBadRequestWithMessage("token expired"), "")
 	}
+	return nil, stacktrace.Propagate(lastErr, "JWT validation failed with all public keys")
 
-	// Extract the claims
-	claims, ok := token.Claims.(*JWTClaims)
-	if !ok {
-		return nil, stacktrace.Propagate(fmt.Errorf("failed to extract claims"), "")
-	}
-
-	return claims, nil
 }
 
 // GetPreferredUsername extracts the preferred_username claim from a JWT token
