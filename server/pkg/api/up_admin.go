@@ -3,18 +3,35 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/ente-io/museum/ente"
 	"github.com/ente-io/museum/pkg/utils/auth"
 	"github.com/ente-io/museum/pkg/utils/handler"
+	"github.com/ente-io/museum/pkg/utils/time"
 	"github.com/ente-io/stacktrace"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
-func (h *AdminHandler) UpDeleteUser(context *gin.Context) {
+func (h *AdminHandler) UPGetUsers(c *gin.Context) {
+
+	sinceTime, err := strconv.ParseInt(c.Query("sinceTime"), 10, 64)
+	if err != nil {
+		handler.Error(c, stacktrace.Propagate(err, ""))
+		return
+	}
+	users, err := h.UserRepo.GetAll(sinceTime, time.Microseconds())
+	if err != nil {
+		handler.Error(c, stacktrace.Propagate(err, ""))
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"users": users})
+}
+
+func (h *AdminHandler) UPDeleteUser(context *gin.Context) {
 	var username string
 	username = context.Query("username")
 	username = strings.TrimSpace(username)

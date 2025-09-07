@@ -754,7 +754,8 @@ func main() {
 		StorageBonusCtl:         storageBonusCtrl,
 		UserUtils:               userUtils,
 	}
-	upAdminAPI.DELETE("/user/delete", adminHandler.UpDeleteUser)
+	upAdminAPI.DELETE("/user/delete", adminHandler.UPDeleteUser)
+	upAdminAPI.GET("/users", adminHandler.UPGetUsers)
 
 	adminAPI.POST("/mail", adminHandler.SendMail)
 	adminAPI.POST("/mail/subscribe", adminHandler.SubscribeMail)
