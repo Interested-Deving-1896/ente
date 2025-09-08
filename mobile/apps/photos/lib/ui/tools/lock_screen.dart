@@ -64,13 +64,6 @@ class _LockScreenState extends State<LockScreen>
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.logout_outlined),
-          color: Theme.of(context).iconTheme.color,
-          onPressed: () {
-            _onLogoutTapped(context);
-          },
-        ),
       ),
       body: GestureDetector(
         onTap: () {

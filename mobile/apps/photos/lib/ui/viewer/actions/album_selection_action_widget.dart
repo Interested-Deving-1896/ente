@@ -68,13 +68,6 @@ class _AlbumSelectionActionWidgetState
         widget.sectionType == UISectionType.outgoingCollections) {
       items.add(
         SelectionActionButton(
-          labelText: AppLocalizations.of(context).share,
-          icon: Icons.adaptive.share,
-          onTap: _shareCollection,
-        ),
-      );
-      items.add(
-        SelectionActionButton(
           labelText: "Pin",
           icon: Icons.push_pin_rounded,
           onTap: _onPinClick,

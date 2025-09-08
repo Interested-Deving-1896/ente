@@ -20,7 +20,6 @@ import 'package:photos/ui/account/sessions_page.dart';
 import 'package:photos/ui/components/captioned_text_widget.dart';
 import 'package:photos/ui/components/expandable_menu_item_widget.dart';
 import 'package:photos/ui/components/menu_item_widget/menu_item_widget.dart';
-import 'package:photos/ui/components/toggle_switch_widget.dart';
 import "package:photos/ui/notification/toast.dart";
 import 'package:photos/ui/settings/common_settings.dart';
 import "package:photos/ui/settings/lock_screen/lock_screen_options.dart";
@@ -72,37 +71,6 @@ class _SecuritySectionWidgetState extends State<SecuritySectionWidget> {
     if (_config.hasConfiguredAccount()) {
       children.addAll(
         [
-          sectionOptionSpacing,
-          MenuItemWidget(
-            captionedTextWidget: CaptionedTextWidget(
-              title: AppLocalizations.of(context).twofactor,
-            ),
-            trailingWidget: ToggleSwitchWidget(
-              value: () => UserService.instance.hasEnabledTwoFactor(),
-              onChanged: () async {
-                final hasAuthenticated = await LocalAuthenticationService
-                    .instance
-                    .requestLocalAuthentication(
-                  context,
-                  AppLocalizations.of(context)
-                      .authToConfigureTwofactorAuthentication,
-                );
-                final isTwoFactorEnabled =
-                    UserService.instance.hasEnabledTwoFactor();
-                if (hasAuthenticated) {
-                  if (isTwoFactorEnabled) {
-                    await _disableTwoFactor();
-                    completer.isCompleted ? null : completer.complete();
-                  } else {
-                    await UserService.instance
-                        .setupTwoFactor(context, completer);
-                  }
-                  return completer.future;
-                }
-              },
-            ),
-          ),
-          sectionOptionSpacing,
         ],
       );
     }

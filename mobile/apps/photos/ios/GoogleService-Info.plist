@@ -31,6 +31,5 @@
 	<key>GOOGLE_APP_ID</key>
 	<string>1:817308839677:ios:59c62441723617b2185894</string>
 	<key>DATABASE_URL</key>
-	<string>https://ente-photos-d38a3.firebaseio.com</string>
 </dict>
 </plist>

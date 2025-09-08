@@ -30,13 +30,10 @@ import 'package:photos/services/collections_service.dart';
 import "package:photos/services/files_service.dart";
 import "package:photos/states/location_screen_state.dart";
 import "package:photos/theme/colors.dart";
-import "package:photos/theme/ente_theme.dart";
 import 'package:photos/ui/actions/collection/collection_sharing_actions.dart';
 import "package:photos/ui/cast/auto.dart";
 import "package:photos/ui/cast/choose.dart";
-import "package:photos/ui/collections/album/smart_album_people.dart";
 import "package:photos/ui/common/popup_item.dart";
-import "package:photos/ui/common/popup_item_async.dart";
 import "package:photos/ui/common/web_page.dart";
 import 'package:photos/ui/components/action_sheet_widget.dart';
 import 'package:photos/ui/components/buttons/button_widget.dart';
@@ -407,23 +404,6 @@ class _GalleryAppBarWidgetState extends State<GalleryAppBarWidget> {
       );
     }
 
-    if (galleryType.isSharable() && !widget.isFromCollectPhotos) {
-      actions.add(
-        Tooltip(
-          message: AppLocalizations.of(context).share,
-          child: IconButton(
-            icon: Icon(
-              isQuickLink && (widget.collection!.hasLink)
-                  ? Icons.link_outlined
-                  : Icons.adaptive.share,
-            ),
-            onPressed: () async {
-              await _showShareCollectionDialog();
-            },
-          ),
-        ),
-      );
-    }
 
     if (widget.collection != null && castService.isSupported) {
       actions.add(
@@ -534,23 +514,6 @@ class _GalleryAppBarWidgetState extends State<GalleryAppBarWidget> {
           context.l10n.playOnTv,
           icon: Icons.tv_outlined,
         ),
-      if (flagService.hasGrantedMLConsent &&
-          (widget.collection?.canAutoAdd(userId) ?? false))
-        EntePopupMenuItemAsync(
-          (value) => (value?[widget.collection!.id]?.personIDs.isEmpty ?? true)
-              ? AppLocalizations.of(context).autoAddPeople
-              : AppLocalizations.of(context).editAutoAddPeople,
-          value: AlbumPopupAction.autoAddPhotos,
-          future: smartAlbumsService.getSmartConfigs,
-          iconWidget: (value) => Image.asset(
-            (value?[widget.collection!.id]?.personIDs.isEmpty ?? true)
-                ? "assets/auto-add-people.png"
-                : "assets/edit-auto-add-people.png",
-            width: 20,
-            height: 20,
-            color: EnteTheme.isDark(context) ? Colors.white : Colors.black,
-          ),
-        ),
       if (galleryType.canDelete())
         EntePopupMenuItem(
           isQuickLink
@@ -626,14 +589,6 @@ class _GalleryAppBarWidgetState extends State<GalleryAppBarWidget> {
             await _leaveAlbum(context);
           } else if (value == AlbumPopupAction.playOnTv) {
             await _castChoiceDialog();
-          } else if (value == AlbumPopupAction.autoAddPhotos) {
-            await routeToPage(
-              context,
-              SmartAlbumPeople(
-                collectionId: widget.collection!.id,
-              ),
-            );
-            setState(() {});
           } else if (value == AlbumPopupAction.freeUpSpace) {
             await _deleteBackedUpFiles(context);
           } else if (value == AlbumPopupAction.setCover) {

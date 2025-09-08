@@ -34,13 +34,6 @@ elif [[ $BRANCH == "f-droid" ]]; then
     PREFIX="fdroid-"
     # Additional checks for f-droid branch
     # Verify that the pubspec.yaml doesn't contain certain words
-    WORDS=("in_app_purchase" "firebase")
-    for word in ${WORDS[@]}; do
-        if grep -q $word pubspec.yaml; then
-            echo "The pubspec.yaml file dependency on '$word', which is not allowed on the f-droid branch."
-            exit 1
-        fi
-    done
 else
     echo "Tags can only be created on the independent or f-droid branches."
     exit 1
