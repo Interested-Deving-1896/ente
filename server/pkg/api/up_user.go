@@ -42,7 +42,7 @@ func (h *UPUserHandler) SendOTT(c *gin.Context) {
 	}
 
 	if request.Purpose == ente.SignUpOTTPurpose || request.Purpose == ente.LoginOTTPurpose {
-		err := h.UserController.SendEmailOTT(c, username, request.Purpose)
+		err := h.UserController.SendEmailOTT(c, username, request.Purpose, request.Mobile)
 		if err != nil {
 			handler.Error(c, stacktrace.Propagate(err, ""))
 			return
