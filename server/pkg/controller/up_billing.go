@@ -55,6 +55,44 @@ func NewUPBillingController(
 	}
 }
 
+func (c *BillingController) UPHandleAccountDeletion(userID int64, logger *log.Entry) (isCancelled bool, err error) {
+	logger.Info("updating billing on account deletion")
+	subscription, err := c.BillingRepo.GetUserSubscription(userID)
+	if err != nil {
+		return false, stacktrace.Propagate(err, "")
+	}
+	billingLogger := logger.WithFields(log.Fields{
+		"customer_id":            subscription.Attributes.CustomerID,
+		"is_cancelled":           subscription.Attributes.IsCancelled,
+		"original_txn_id":        subscription.OriginalTransactionID,
+		"payment_provider":       subscription.PaymentProvider,
+		"product_id":             subscription.ProductID,
+		"stripe_account_country": subscription.Attributes.StripeAccountCountry,
+	})
+	billingLogger.Info("subscription fetched")
+	// user on free plan, no action required
+	if subscription.ProductID == ente.FreePlanProductID {
+		billingLogger.Info("user on free plan")
+		return true, nil
+	}
+	// The word "family" here is a misnomer - these are some manually created
+	// accounts for very early adopters, and are unrelated to Family Plans.
+	// Cancelation of these accounts will require manual intervention. Ideally,
+	// we should never be deleting such accounts.
+	if subscription.ProductID == ente.FamilyPlanProductID || subscription.ProductID == "" {
+		return false, stacktrace.NewError(fmt.Sprintf("unexpected product id %s", subscription.ProductID), "")
+	}
+	isCancelled = subscription.Attributes.IsCancelled
+	// delete customer data from Stripe if user is on paid plan.
+	logger.Info("Updating originalTransactionID for app/playStore provider")
+	err = c.BillingRepo.UpdateTransactionIDOnDeletion(userID)
+	if err != nil {
+		return false, stacktrace.Propagate(err, "")
+	}
+
+	return isCancelled, nil
+}
+
 // UPVerifySubscription verifies and returns the verified subscription
 func (c *UPBillingController) UPVerifySubscription(
 	userID int64) (ente.Subscription, error) {
