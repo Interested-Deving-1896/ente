@@ -57,7 +57,7 @@ func (h *AdminHandler) UPDeleteUser(context *gin.Context) {
 		handler.Error(context, stacktrace.Propagate(removeLegacyErr, ""))
 		return
 	}
-	response, err := h.UserController.HandleAccountDeletion(context, userID, logger)
+	response, err := h.UserController.BillingController.UPHandleAccountDeletion(userID, logger)
 	if err != nil {
 		handler.Error(context, stacktrace.Propagate(err, ""))
 		return
