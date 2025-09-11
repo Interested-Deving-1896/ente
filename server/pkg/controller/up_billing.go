@@ -84,7 +84,7 @@ func (c *BillingController) UPHandleAccountDeletion(userID int64, logger *log.En
 	}
 	isCancelled = subscription.Attributes.IsCancelled
 	// delete customer data from Stripe if user is on paid plan.
-	logger.Info("Updating originalTransactionID for app/playStore provider")
+	logger.Info("Updating originalTransactionID for UNPLUGGED provider")
 	err = c.BillingRepo.UpdateTransactionIDOnDeletion(userID)
 	if err != nil {
 		return false, stacktrace.Propagate(err, "")
