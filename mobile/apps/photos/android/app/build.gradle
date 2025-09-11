@@ -131,13 +131,6 @@ android {
         }
     }
 
-    android.applicationVariants.all { variant ->
-        if (variant.flavorName == "fdroid") {
-            variant.outputs.all { output ->
-                output.outputFileName = "app-fdroid-release.apk"
-            }
-        }
-    }
 }
 
 rootProject.allprojects {
