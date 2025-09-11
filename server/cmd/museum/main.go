@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	b64 "encoding/base64"
 	"fmt"
+	publicCtrl "github.com/ente-io/museum/pkg/controller/public"
+	"github.com/ente-io/museum/pkg/repo/public"
 	"net/http"
 	"os"
 	"os/signal"
@@ -98,6 +100,8 @@ func main() {
 	}
 
 	viper.SetDefault("apps.public-albums", "https://albums.ente.io")
+	viper.SetDefault("apps.custom-domain.cname", "my.ente.io")
+	viper.SetDefault("apps.public-locker", "https://locker.ente.io")
 	viper.SetDefault("apps.accounts", "https://accounts.ente.io")
 	viper.SetDefault("apps.cast", "https://cast.ente.io")
 	viper.SetDefault("apps.family", "https://family.ente.io")
@@ -178,11 +182,13 @@ func main() {
 	fileRepo := &repo.FileRepository{DB: db, S3Config: s3Config, QueueRepo: queueRepo,
 		ObjectRepo: objectRepo, ObjectCleanupRepo: objectCleanupRepo,
 		ObjectCopiesRepo: objectCopiesRepo, UsageRepo: usageRepo}
+	fileLinkRepo := public.NewFileLinkRepo(db)
 	fileDataRepo := &fileDataRepo.Repository{DB: db, ObjectCleanupRepo: objectCleanupRepo}
 	familyRepo := &repo.FamilyRepository{DB: db}
-	trashRepo := &repo.TrashRepository{DB: db, ObjectRepo: objectRepo, FileRepo: fileRepo, QueueRepo: queueRepo}
-	publicCollectionRepo := repo.NewPublicCollectionRepository(db, viper.GetString("apps.public-albums"))
-	collectionRepo := &repo.CollectionRepository{DB: db, FileRepo: fileRepo, PublicCollectionRepo: publicCollectionRepo,
+	trashRepo := &repo.TrashRepository{DB: db, ObjectRepo: objectRepo, FileRepo: fileRepo, QueueRepo: queueRepo, FileLinkRepo: fileLinkRepo}
+	collectionLinkRepo := public.NewCollectionLinkRepository(db, viper.GetString("apps.public-albums"))
+
+	collectionRepo := &repo.CollectionRepository{DB: db, FileRepo: fileRepo, CollectionLinkRepo: collectionLinkRepo,
 		TrashRepo: trashRepo, SecretEncryptionKey: secretEncryptionKeyBytes, QueueRepo: queueRepo, LatencyLogger: latencyLogger}
 	pushRepo := &repo.PushTokenRepository{DB: db}
 	kexRepo := &kex.Repository{
@@ -213,7 +219,6 @@ func main() {
 	commonBillController := commonbilling.NewController(emailNotificationCtrl, storagBonusRepo, userRepo, usageRepo, billingRepo)
 	appStoreController := controller.NewAppStoreController(defaultPlan,
 		billingRepo, fileRepo, userRepo, commonBillController)
-	remoteStoreController := &remoteStoreCtrl.Controller{Repo: remoteStoreRepository}
 	playStoreController := controller.NewPlayStoreController(defaultPlan,
 		billingRepo, fileRepo, userRepo, storagBonusRepo, commonBillController)
 	stripeController := controller.NewStripeController(plans, stripeClients,
@@ -222,6 +227,8 @@ func main() {
 		appStoreController, playStoreController, stripeController,
 		discordController, emailNotificationCtrl,
 		billingRepo, userRepo, usageRepo, storagBonusRepo, commonBillController)
+	remoteStoreController := &remoteStoreCtrl.Controller{Repo: remoteStoreRepository, BillingCtrl: billingController}
+
 	pushController := controller.NewPushController(pushRepo, taskLockingRepo, hostName)
 	mailingListsController := controller.NewMailingListsController()
 
@@ -306,26 +313,27 @@ func main() {
 		UsageRepo:     usageRepo,
 	}
 
-	publicCollectionCtrl := &controller.PublicCollectionController{
+	collectionLinkCtrl := &publicCtrl.CollectionLinkController{
 		FileController:        fileController,
 		EmailNotificationCtrl: emailNotificationCtrl,
-		PublicCollectionRepo:  publicCollectionRepo,
+		CollectionLinkRepo:    collectionLinkRepo,
+		FileLinkRepo:          fileLinkRepo,
 		CollectionRepo:        collectionRepo,
 		UserRepo:              userRepo,
 		JwtSecret:             jwtSecretBytes,
 	}
 
 	collectionController := &collections.CollectionController{
-		CollectionRepo:       collectionRepo,
-		EmailCtrl:            emailNotificationCtrl,
-		AccessCtrl:           accessCtrl,
-		PublicCollectionCtrl: publicCollectionCtrl,
-		UserRepo:             userRepo,
-		FileRepo:             fileRepo,
-		CastRepo:             &castDb,
-		BillingCtrl:          billingController,
-		QueueRepo:            queueRepo,
-		TaskRepo:             taskLockingRepo,
+		CollectionRepo:     collectionRepo,
+		EmailCtrl:          emailNotificationCtrl,
+		AccessCtrl:         accessCtrl,
+		CollectionLinkCtrl: collectionLinkCtrl,
+		UserRepo:           userRepo,
+		FileRepo:           fileRepo,
+		CastRepo:           &castDb,
+		BillingCtrl:        billingController,
+		QueueRepo:          queueRepo,
+		TaskRepo:           taskLockingRepo,
 	}
 
 	kexCtrl := &kexCtrl.Controller{
@@ -357,6 +365,12 @@ func main() {
 		userCache,
 		userCacheCtrl,
 	)
+	fileLinkCtrl := &publicCtrl.FileLinkController{
+		FileController: fileController,
+		FileLinkRepo:   fileLinkRepo,
+		FileRepo:       fileRepo,
+		JwtSecret:      jwtSecretBytes,
+	}
 
 	passkeyCtrl := &controller.PasskeyController{
 		Repo:     passkeysRepo,
@@ -369,13 +383,21 @@ func main() {
 	}
 
 	authMiddleware := middleware.AuthMiddleware{UserAuthRepo: userAuthRepo, Cache: authCache, UserController: userController}
-	accessTokenMiddleware := middleware.AccessTokenMiddleware{
-		PublicCollectionRepo: publicCollectionRepo,
-		PublicCollectionCtrl: publicCollectionCtrl,
+	collectionLinkMiddleware := middleware.CollectionLinkMiddleware{
+		CollectionLinkRepo:   collectionLinkRepo,
+		PublicCollectionCtrl: collectionLinkCtrl,
 		CollectionRepo:       collectionRepo,
 		Cache:                accessTokenCache,
 		BillingCtrl:          billingController,
 		DiscordController:    discordController,
+		RemoteStoreRepo:      remoteStoreRepository,
+	}
+	fileLinkMiddleware := &middleware.FileLinkMiddleware{
+		FileLinkRepo:      fileLinkRepo,
+		FileLinkCtrl:      fileLinkCtrl,
+		Cache:             accessTokenCache,
+		BillingCtrl:       billingController,
+		DiscordController: discordController,
 	}
 	userUtils := &utils.User{UserRepo: userRepo, HashingKey: hashingKeyBytes}
 	upAccessTokenMiddleware := middleware.UPAccessTokenMiddleware{JWTValidator: jwtValidator, Cache: accessTokenCache, UserUtils: userUtils}
@@ -421,7 +443,9 @@ func main() {
 	familiesJwtAuthAPI.Use(rateLimiter.GlobalRateLimiter(), authMiddleware.TokenAuthMiddleware(jwt.FAMILIES.Ptr()), rateLimiter.APIRateLimitForUserMiddleware(urlSanitizer))
 
 	publicCollectionAPI := server.Group("/public-collection")
-	publicCollectionAPI.Use(rateLimiter.GlobalRateLimiter(), accessTokenMiddleware.AccessTokenAuthMiddleware(urlSanitizer))
+	publicCollectionAPI.Use(rateLimiter.GlobalRateLimiter(), collectionLinkMiddleware.Authenticate(urlSanitizer))
+	fileLinkApi := server.Group("/file-link")
+	fileLinkApi.Use(rateLimiter.GlobalRateLimiter(), fileLinkMiddleware.Authenticate(urlSanitizer))
 
 	healthCheckHandler := &api.HealthCheckHandler{
 		DB: db,
@@ -449,6 +473,7 @@ func main() {
 		Controller:   fileController,
 		FileCopyCtrl: fileCopyCtrl,
 		FileDataCtrl: fileDataCtrl,
+		FileUrlCtrl:  fileLinkCtrl,
 	}
 	privateAPI.GET("/files/upload-urls", fileHandler.GetUploadURLs)
 	privateAPI.GET("/files/multipart-upload-urls", fileHandler.GetMultipartUploadURLs)
@@ -456,6 +481,11 @@ func main() {
 	privateAPI.GET("/files/download/v2/:fileID", fileHandler.Get)
 	privateAPI.GET("/files/preview/:fileID", fileHandler.GetThumbnail)
 	privateAPI.GET("/files/preview/v2/:fileID", fileHandler.GetThumbnail)
+
+	privateAPI.POST("/files/share-url", fileHandler.ShareUrl)
+	privateAPI.PUT("/files/share-url", fileHandler.UpdateFileURL)
+	privateAPI.DELETE("/files/share-url/:fileID", fileHandler.DisableUrl)
+	privateAPI.GET("/files/share-urls/", fileHandler.GetUrls)
 
 	privateAPI.PUT("/files/data", fileHandler.PutFileData)
 	privateAPI.PUT("/files/video-data", fileHandler.PutVideoData)
@@ -603,12 +633,18 @@ func main() {
 	privateAPI.PUT("/collections/sharee-magic-metadata", collectionHandler.ShareeMagicMetadataUpdate)
 
 	publicCollectionHandler := &api.PublicCollectionHandler{
-		Controller:             publicCollectionCtrl,
+		Controller:             collectionLinkCtrl,
 		FileCtrl:               fileController,
 		CollectionCtrl:         collectionController,
 		FileDataCtrl:           fileDataCtrl,
 		StorageBonusController: storageBonusCtrl,
 	}
+
+	fileLinkApi.GET("/info", fileHandler.LinkInfo)
+	fileLinkApi.GET("/pass-info", fileHandler.PasswordInfo)
+	fileLinkApi.GET("/thumbnail", fileHandler.LinkThumbnail)
+	fileLinkApi.GET("/file", fileHandler.LinkFile)
+	fileLinkApi.POST("/verify-password", fileHandler.VerifyPassword)
 
 	publicCollectionAPI.GET("/files/preview/:fileID", publicCollectionHandler.GetThumbnail)
 	publicCollectionAPI.GET("/files/download/:fileID", publicCollectionHandler.GetFile)
@@ -813,8 +849,10 @@ func main() {
 	remoteStoreHandler := &api.RemoteStoreHandler{Controller: remoteStoreController}
 
 	privateAPI.POST("/remote-store/update", remoteStoreHandler.InsertOrUpdate)
+	privateAPI.DELETE("/remote-store/:key", remoteStoreHandler.RemoveKey)
 	privateAPI.GET("/remote-store", remoteStoreHandler.GetKey)
 	privateAPI.GET("/remote-store/feature-flags", remoteStoreHandler.GetFeatureFlags)
+	publicAPI.GET("/custom-domain", remoteStoreHandler.CheckDomain)
 
 	pushHandler := &api.PushHandler{PushController: pushController}
 	privateAPI.POST("/push/token", pushHandler.AddToken)
@@ -827,7 +865,7 @@ func main() {
 	setKnownAPIs(server.Routes())
 	setupAndStartBackgroundJobs(objectCleanupController, replicationController3, fileDataCtrl)
 	setupAndStartCrons(
-		userAuthRepo, publicCollectionRepo, twoFactorRepo, passkeysRepo, fileController, taskLockingRepo, emailNotificationCtrl,
+		userAuthRepo, collectionLinkRepo, fileLinkRepo, twoFactorRepo, passkeysRepo, fileController, taskLockingRepo, emailNotificationCtrl,
 		trashController, pushController, objectController, dataCleanupController, storageBonusCtrl, emergencyCtrl,
 		embeddingController, healthCheckHandler, kexCtrl, castDb)
 
@@ -955,7 +993,8 @@ func setupAndStartBackgroundJobs(
 	objectCleanupController.StartClearingOrphanObjects()
 }
 
-func setupAndStartCrons(userAuthRepo *repo.UserAuthRepository, publicCollectionRepo *repo.PublicCollectionRepository,
+func setupAndStartCrons(userAuthRepo *repo.UserAuthRepository, collectionLinkRepo *public.CollectionLinkRepo,
+	fileLinkRepo *public.FileLinkRepository,
 	twoFactorRepo *repo.TwoFactorRepository, passkeysRepo *passkey.Repository, fileController *controller.FileController,
 	taskRepo *repo.TaskLockRepository, emailNotificationCtrl *email.EmailNotificationController,
 	trashController *controller.TrashController, pushController *controller.PushController,
@@ -979,9 +1018,10 @@ func setupAndStartCrons(userAuthRepo *repo.UserAuthRepository, publicCollectionR
 	})
 
 	schedule(c, "@every 24h", func() {
-		_ = userAuthRepo.RemoveDeletedTokens(timeUtil.MicrosecondBeforeDays(30))
-		_ = castDb.DeleteOldSessions(context.Background(), timeUtil.MicrosecondBeforeDays(7))
-		_ = publicCollectionRepo.CleanupAccessHistory(context.Background())
+		_ = userAuthRepo.RemoveDeletedTokens(timeUtil.MicrosecondsBeforeDays(30))
+		_ = castDb.DeleteOldSessions(context.Background(), timeUtil.MicrosecondsBeforeDays(7))
+		_ = collectionLinkRepo.CleanupAccessHistory(context.Background())
+		_ = fileLinkRepo.CleanupAccessHistory(context.Background())
 	})
 
 	schedule(c, "@every 1m", func() {
@@ -1047,6 +1087,14 @@ func setupAndStartCrons(userAuthRepo *repo.UserAuthRepository, publicCollectionR
 		emailNotificationCtrl.SendStorageLimitExceededMails()
 	})
 
+	scheduleAndRun(c, "@every 24h", func() {
+		emailNotificationCtrl.SayHelloToCustomers()
+	})
+
+	scheduleAndRun(c, "@every 24h", func() {
+		emailNotificationCtrl.NudgePaidSubscriberForFamily()
+	})
+
 	schedule(c, "@every 1m", func() {
 		pushController.SendPushes()
 	})
@@ -1067,7 +1115,7 @@ func cors() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", c.GetHeader("Origin"))
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, X-Auth-Token, X-Auth-Access-Token, X-Cast-Access-Token, X-Auth-Access-Token-JWT, X-Client-Package, X-Client-Version, Authorization, accept, origin, Cache-Control, X-Requested-With, upgrade-insecure-requests")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, X-Auth-Token, X-Auth-Access-Token, X-Cast-Access-Token, X-Auth-Access-Token-JWT, X-Client-Package, X-Client-Version, Authorization, accept, origin, Cache-Control, X-Requested-With, upgrade-insecure-requests, Range")
 		c.Writer.Header().Set("Access-Control-Expose-Headers", "X-Request-Id")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, PATCH, DELETE")
 		c.Writer.Header().Set("Access-Control-Max-Age", "1728000")

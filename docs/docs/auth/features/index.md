@@ -12,7 +12,7 @@ This page outlines the key features available in Ente Auth.
 Ente Auth supports the icon pack provided by
 [simple-icons](https://github.com/simple-icons/simple-icons). If an icon you
 need is missing, please refer to the
-[docs/adding-icons](https://github.com/ente-io/ente/blob/main/auth/docs/adding-icons.md)
+[docs/adding-icons](https://github.com/ente-io/ente/blob/main/mobile/apps/auth/docs/adding-icons.md)
 guide for instructions on how to contribute.
 
 ### Search
@@ -105,8 +105,7 @@ Ente Auth offers various import and export options for your codes.
   automatically via the CLI.
 - **Import:** Import codes from various other authentication apps.
 
-For detailed instructions, refer to the
-[migration guides](../migration-guides/).
+For detailed instructions, refer to the [migration guides](../migration/).
 
 ### Deduplicate codes
 
@@ -136,4 +135,4 @@ Easily add or share entries using QR codes:
   right-click (desktop) a code and select "QR". This allows you to easily share
   the complete entry (including the secret) with others by letting them scan the
   displayed QR code. This can also be used to easily add the same entry to
-  another authenticatior app or service.
+  another authenticator app or service.
