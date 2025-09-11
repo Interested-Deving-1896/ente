@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/ente-io/museum/pkg/controller/emergency"
+	"github.com/ente-io/museum/pkg/utils"
 	"github.com/gin-contrib/requestid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -27,6 +28,7 @@ import (
 type UserHandler struct {
 	UserController      *user.UserController
 	EmergencyController *emergency.Controller
+	UserUtils           *utils.User
 }
 
 // SendOTT generates and sends an OTT to the provided email address
@@ -561,7 +563,7 @@ func (h *UserHandler) SelfAccountRecovery(c *gin.Context) {
 
 // GetSRPAttributes returns the SRP attributes for a user
 func (h *UserHandler) GetSRPAttributes(c *gin.Context) {
-	var emailHost = viper.GetString("unplugged.email-host")
+
 	var request ente.GetSRPAttributesRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
 		handler.Error(c,
@@ -569,20 +571,11 @@ func (h *UserHandler) GetSRPAttributes(c *gin.Context) {
 		return
 	}
 	var username = request.Email
+	var err error
+	_, username, err = h.UserUtils.GetUserID(username)
 	response, err := h.UserController.GetSRPAttributes(c, username)
 	if err != nil {
-
-		emailUsername := username + "@" + emailHost
-		requestEmailUser, errEmailUser := h.UserController.GetSRPAttributes(c, emailUsername)
-		if errEmailUser != nil {
-			handler.Error(c, stacktrace.Propagate(err, ""))
-		}
-		logrus.WithFields(logrus.Fields{
-			"email":       emailUsername,
-			"srp_user_id": requestEmailUser.SRPUserID,
-		}).Info("Sending SRP attributes")
-		c.JSON(http.StatusOK, gin.H{"attributes": response})
-
+		handler.Error(c, stacktrace.Propagate(err, ""))
 	} else {
 		logrus.WithFields(logrus.Fields{
 			"email":       username,

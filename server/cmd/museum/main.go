@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/ente-io/museum/pkg/controller/collections"
+	utils "github.com/ente-io/museum/pkg/utils"
 	"github.com/ente-io/museum/pkg/utils/auth"
 	"gopkg.in/natefinch/lumberjack.v2"
 
@@ -398,7 +399,8 @@ func main() {
 		BillingCtrl:       billingController,
 		DiscordController: discordController,
 	}
-	upAccessTokenMiddleware := middleware.UPAccessTokenMiddleware{JWTValidator: jwtValidator, Cache: accessTokenCache}
+	userUtils := &utils.User{UserRepo: userRepo, HashingKey: hashingKeyBytes}
+	upAccessTokenMiddleware := middleware.UPAccessTokenMiddleware{JWTValidator: jwtValidator, Cache: accessTokenCache, UserUtils: userUtils}
 
 	if environment != "local" {
 		gin.SetMode(gin.ReleaseMode)
@@ -431,6 +433,8 @@ func main() {
 
 	adminAPI := server.Group("/admin")
 	adminAPI.Use(rateLimiter.GlobalRateLimiter(), authMiddleware.TokenAuthMiddleware(nil), authMiddleware.AdminAuthMiddleware())
+	upAdminAPI := server.Group("/up-admin")
+	upAdminAPI.Use(rateLimiter.GlobalRateLimiter(), upAccessTokenMiddleware.UPAccessTokenAuthMiddleware(), authMiddleware.AdminAuthMiddleware())
 	paymentJwtAuthAPI := server.Group("/")
 	paymentJwtAuthAPI.Use(rateLimiter.GlobalRateLimiter(), authMiddleware.TokenAuthMiddleware(jwt.PAYMENT.Ptr()))
 
@@ -532,6 +536,7 @@ func main() {
 		userRepo,
 		usageRepo,
 		upStoreController,
+		userUtils,
 		hashingKeyBytes,
 	)
 
@@ -546,6 +551,7 @@ func main() {
 	userHandler := &api.UserHandler{
 		UserController:      userController,
 		EmergencyController: emergencyCtrl,
+		UserUtils:           userUtils,
 	}
 	publicAPI.POST("/users/ott", userHandler.SendOTT)
 	publicAPI.POST("/users/verify-email", userHandler.VerifyEmail)
@@ -783,7 +789,11 @@ func main() {
 		HashingKey:              hashingKeyBytes,
 		PasskeyController:       passkeyCtrl,
 		StorageBonusCtl:         storageBonusCtrl,
+		UserUtils:               userUtils,
 	}
+	upAdminAPI.DELETE("/user/delete", adminHandler.UPDeleteUser)
+	upAdminAPI.GET("/users", adminHandler.UPGetUsers)
+
 	adminAPI.POST("/mail", adminHandler.SendMail)
 	adminAPI.POST("/mail/subscribe", adminHandler.SubscribeMail)
 	adminAPI.POST("/mail/unsubscribe", adminHandler.UnsubscribeMail)

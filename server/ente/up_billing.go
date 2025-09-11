@@ -8,8 +8,7 @@ const (
 	PremiumPlanStorage int64 = 1000 * 1024 * 1024 * 1024 // 1TB
 
 	// Plan IDs
-	FreePlanID    = "BASIC"
-	PremiumPlanID = "PREMIUM"
+	FreePlanID = "BASIC"
 )
 
 type UpSubscriptionDetails struct {

@@ -93,6 +93,7 @@ func (m *AuthMiddleware) TokenAuthMiddleware(jwtClaimScope *jwt.ClaimScope) gin.
 func (m *AuthMiddleware) AdminAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := auth.GetUserID(c.Request.Header)
+		logrus.Infof("AdminAuthMiddleware: userID= %d", userID)
 		admins := viper.GetIntSlice("internal.admins")
 		for _, admin := range admins {
 			if int64(admin) == userID {
@@ -103,6 +104,8 @@ func (m *AuthMiddleware) AdminAuthMiddleware() gin.HandlerFunc {
 		// The config allows alternatively specifying a singular admin ID to
 		// workaround Viper issues in passing env vars for an int slice.
 		admin := viper.GetInt("internal.admin")
+		//TODO Remove admin from here
+		logrus.Infof("AdminAuthMiddleware: admin= %d, userID= %d", admin, userID)
 		if len(admins) == 0 && admin != 0 {
 			if int64(admin) == userID {
 				c.Next()

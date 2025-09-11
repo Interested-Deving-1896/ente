@@ -26,7 +26,7 @@ type UPUserHandler struct {
 
 // SendOTT validates the JWT token and then calls the original SendOTT method
 func (h *UPUserHandler) SendOTT(c *gin.Context) {
-	var emailHost = viper.GetString("unplugged.email-host")
+
 	// Validate JWT token
 	authToken := c.GetHeader("Authorization")
 
@@ -36,10 +36,8 @@ func (h *UPUserHandler) SendOTT(c *gin.Context) {
 		return
 	}
 	preferredUsername, _ := h.JWTValidator.GetPreferredUsername(authToken)
-	username := preferredUsername + "@" + emailHost
-	log.Infof("OTT Username: %s", username)
-	if len(username) == 0 {
-		handler.Error(c, stacktrace.Propagate(ente.ErrBadRequest, "Email id is missing"))
+	username, isError := buildEmailFromUsername(c, preferredUsername)
+	if isError {
 		return
 	}
 
@@ -79,4 +77,15 @@ func (h *UPUserHandler) SendOTT(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response)
 
+}
+
+func buildEmailFromUsername(c *gin.Context, preferredUsername string) (string, bool) {
+	var emailHost = viper.GetString("unplugged.email-host")
+	username := preferredUsername + "@" + emailHost
+	log.Infof("OTT Username: %s", username)
+	if len(username) == 0 {
+		handler.Error(c, stacktrace.Propagate(ente.ErrBadRequest, "Email id is missing"))
+		return "", true
+	}
+	return username, false
 }
