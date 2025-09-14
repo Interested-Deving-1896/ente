@@ -84,18 +84,6 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".LoginActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|uiMode"
-            android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.DEFAULT" />
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
-            </intent-filter>
-        </activity>
         <activity-alias
             android:name="${applicationId}.IconGreen"
             android:enabled="true"

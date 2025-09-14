@@ -70,7 +70,7 @@ android {
             enable true
             reset()
             include 'armeabi-v7a', 'arm64-v8a'
-            universalApk false
+            universalApk true
         }
     }
 
@@ -92,36 +92,21 @@ android {
         }
     }
 
-    flavorDimensions "default"
-    productFlavors {
-        independent {
-            dimension "default"
-//            applicationIdSuffix ".independent"
-        }
-        dev {
-            dimension "default"
-//            applicationIdSuffix ".dev"
-        }
-        //       playstore {
-        //           dimension "default"
-        //       }
-        //       fdroid {
-        //           dimension "default"//
-        //           applicationIdSuffix ".fdroid"
-        //       }
-    }
+//    flavorDimensions "default"
+//    productFlavors {
+//        independent {
+//            dimension "default"
+//        }
+//    }
 
     buildTypes {
         release {
             minifyEnabled true
-//            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            //signingConfig signingConfigs.release
-            //signingConfig signingConfigs.debug
-            //debuggable true
         }
         debug {
             debuggable true
+            applicationIdSuffix ".dev"
             versionNameSuffix "-debug"
             externalNativeBuild {
                 cmake {

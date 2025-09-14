@@ -1,7 +1,0 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="io.ente.photos">
-    <uses-permission android:name="com.unplugged.account.THIRD_PARTY_ACTIVITY" />
-
-    <!-- Only add independent-specific overrides here. Activities and application block will be inherited from main manifest. -->
-</manifest>
