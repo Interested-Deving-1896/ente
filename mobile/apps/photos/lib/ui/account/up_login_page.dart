@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
 import 'package:photos/core/event_bus.dart';
@@ -73,7 +72,7 @@ class _LoadingPageState extends State<LoadingPage> {
       return;
     }
 
-    await Fluttertoast.showToast(msg: "Logging in...");
+    // await Fluttertoast.showToast(msg: "Logging in...");
 
     try {
       _logger.info("[DEBUG] Setting email and resetting volatile password");
@@ -85,7 +84,7 @@ class _LoadingPageState extends State<LoadingPage> {
      
       if (response == null) {
         _logger.info("[DEBUG] Login response is null - user may not exist, trying registration");
-        await Fluttertoast.showToast(msg: "Login failed, trying registration...");
+        //await Fluttertoast.showToast(msg: "Login failed, trying registration...");
         await _attemptRegistration(account);
         return;
       }
@@ -123,11 +122,11 @@ class _LoadingPageState extends State<LoadingPage> {
       }
 
       _logger.info("Login successful for ${Configuration.instance.getEmail()}");
-      await Fluttertoast.showToast(msg: "Login successful");
+      // await Fluttertoast.showToast(msg: "Login successful");
       await _onLoginSuccess();
     } catch (e, s) {
       _logger.info("Login failed — attempting fallback registration", e, s);
-      await Fluttertoast.showToast(msg: "Login failed, trying registration...");
+      //await Fluttertoast.showToast(msg: "Login failed, trying registration...");
       await _attemptRegistration(account);
     }
   }
@@ -142,21 +141,21 @@ class _LoadingPageState extends State<LoadingPage> {
 
     try {
       _logger.info("Attempting fallback registration for ${account.username}");
-      await Fluttertoast.showToast(msg: "Registering account...");
+      //await Fluttertoast.showToast(msg: "Registering account...");
 
       await UserService.instance.setEmail(account.username);
       Configuration.instance.resetVolatilePassword();
 
       final response = await UserService.instance.sendOttForAutomation(account.upToken, purpose: "signup");
       if (response == null) {
-        _logger.info("sendOttForAutomation (register) returned empty");
-        await Fluttertoast.showToast(msg: "Registration failed");
+        _logger.info("[DEBUG] REGISTRATION FAILED: sendOttForAutomation (signup) returned null");
+        // await Fluttertoast.showToast(msg: "Registration failed");
         await _showAuthenticationErrorDialog();
         return;
       }
       if (response["token"] == null) {
         _logger.info("[DEBUG] sendOttForAutomation (register) returned null token");
-        await Fluttertoast.showToast(msg: "Registration failed");
+      //  await Fluttertoast.showToast(msg: "Registration failed");
         await _showAuthenticationErrorDialog();
         return;
       }
@@ -169,17 +168,17 @@ class _LoadingPageState extends State<LoadingPage> {
 
       if (!Configuration.instance.hasConfiguredAccount() || Configuration.instance.getToken() == null) {
         _logger.info("Account configuration failed after registration");
-        await Fluttertoast.showToast(msg: "Registration failed");
+        // await Fluttertoast.showToast(msg: "Registration failed");
         await _handleAutomatedLoginFailure("Account setup incomplete after registration");
         return;
       }
 
       _logger.info("[DEBUG] Registration completed successfully");
-      await Fluttertoast.showToast(msg: "Registration successful");
+      //await Fluttertoast.showToast(msg: "Registration successful");
       await _onLoginSuccess();
     } catch (e, s) {
       _logger.info("[DEBUG] Automated registration failed", e, s);
-      await Fluttertoast.showToast(msg: "Registration failed");
+     // await Fluttertoast.showToast(msg: "Registration failed");
       await _showAuthenticationErrorDialog();
       return;
     }
@@ -341,7 +340,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
   Future<void> _handleAutomatedLoginFailure(String message) async {
     _logger.info("Login/Registration failed: $message");
-    await Fluttertoast.showToast(msg: "Login failed: $message");
+    // await Fluttertoast.showToast(msg: "Login failed: $message");
     // Clear all configuration and sensitive data
     await Configuration.instance.logout(autoLogout: true);
   }

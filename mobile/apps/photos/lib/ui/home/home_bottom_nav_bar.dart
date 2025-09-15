@@ -157,7 +157,7 @@ class _HomeBottomNavigationBarState extends State<HomeBottomNavigationBar> {
                           text: '',
                           onPressed: () {
                             _onTabChange(
-                              3,
+                              2,
                               mode: "OnPressed",
                             ); // To take care
                             // of occasional missing events

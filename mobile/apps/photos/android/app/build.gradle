@@ -61,7 +61,7 @@ android {
         versionName = flutter.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
-        consumerProguardFiles 'proguard-rules.pro'
+        // consumerProguardFiles 'proguard-rules.pro' // Commented out for debug builds - uncomment for release optimization
 
     }
 
@@ -101,8 +101,10 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled false
+            shrinkResources false
+            //consumerProguardFiles 'proguard-rules.pro' // ProGuard rules for release builds only
+            //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
             debuggable true

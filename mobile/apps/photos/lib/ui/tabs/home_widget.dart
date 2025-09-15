@@ -143,7 +143,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         Bus.instance.on<TabChangedEvent>().listen((event) {
       _selectedTabIndex = event.selectedIndex;
 
-      if (event.selectedIndex == 3) {
+      if (event.selectedIndex == 2) {
         isOnSearchTabNotifier.value = true;
       } else {
         isOnSearchTabNotifier.value = false;
