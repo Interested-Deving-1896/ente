@@ -220,10 +220,9 @@ class SuperLogging {
   static var logChunkSize = 800;
 
   static void printLog(String text) {
-    if (kDebugMode) {
-      // ignore: avoid_print
-      text.chunked(logChunkSize).forEach(print);
-    }
+    // Always print logs to console (both debug and release builds)
+    // ignore: avoid_print
+    text.chunked(logChunkSize).forEach(print);
   }
 
   static bool shouldReportCrashes() {

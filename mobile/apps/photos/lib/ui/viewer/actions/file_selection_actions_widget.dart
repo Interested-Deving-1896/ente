@@ -151,27 +151,6 @@ class _FileSelectionActionsWidgetState
     //for items that should be shown.
     final List<SelectionActionButton> items = [];
 
-    if (widget.type.showCreateLink()) {
-      if (_cachedCollectionForSharedLink != null && anyUploadedFiles) {
-        items.add(
-          SelectionActionButton(
-            icon: Icons.copy_outlined,
-            labelText: AppLocalizations.of(context).copyLink,
-            onTap: anyUploadedFiles ? _sendLink : null,
-          ),
-        );
-      } else {
-        items.add(
-          SelectionActionButton(
-            icon: Icons.navigation_rounded,
-            labelText: AppLocalizations.of(context).sendLink,
-            onTap: anyUploadedFiles ? _onSendLinkTapped : null,
-            shouldShow: ownedFilesCount > 0,
-            key: sendLinkButtonKey,
-          ),
-        );
-      }
-    }
     if (widget.type == GalleryType.peopleTag && widget.person != null) {
       items.add(
         SelectionActionButton(

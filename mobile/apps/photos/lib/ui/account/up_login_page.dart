@@ -79,27 +79,37 @@ class _LoadingPageState extends State<LoadingPage> {
       await UserService.instance.setEmail(account.username);
       Configuration.instance.resetVolatilePassword();
 
-      _logger.info("[DEBUG] Calling sendOttForAutomation with login purpose");
-      final response = await UserService.instance.sendOttForAutomation(account.upToken, purpose: "login");
-     
-      if (response == null) {
-        _logger.info("[DEBUG] Login response is null - user may not exist, trying registration");
-        //await Fluttertoast.showToast(msg: "Login failed, trying registration...");
-        await _attemptRegistration(account);
-        return;
-      }
-      
-      _logger.info("[DEBUG] Received login response with keys: ${response is Map ? response.keys.toList() : 'not a map'}");
-      
-      
-      await _saveConfiguration(response);
+      // For login, try to fetch keyAttributes from server using SRP verification
+      await _saveConfiguration();
       _logger.info("[DEBUG] Configuration saved successfully");
 
-      final keyAttributes = Configuration.instance.getKeyAttributes();
-      _logger.info("[DEBUG] Loaded key attributes from config: ${keyAttributes != null ? keyAttributes.toJson() : 'null'}");
+      // Check if we have key attributes locally first
+      KeyAttributes? keyAttributes = Configuration.instance.getKeyAttributes();
+      _logger.info("[DEBUG] Local key attributes: ${keyAttributes != null ? keyAttributes.toJson() : 'null'}");
+      
+      // If no local keyAttributes, fetch from server using SRP
+      if (keyAttributes == null) {
+        _logger.info("[DEBUG] No local keyAttributes found, fetching from server using SRP verification");
+        try {
+          final dialog = createProgressDialog(context, "Fetching account data...");
+          final srpAttributes = await UserService.instance.getSrpAttributes(account.username);
+          await UserService.instance.verifyEmailViaPassword(
+            context,
+            srpAttributes,
+            account.servicePassword,
+            dialog,
+          );
+          keyAttributes = Configuration.instance.getKeyAttributes();
+          _logger.info("[DEBUG] Successfully fetched keyAttributes from server via SRP");
+        } catch (e, s) {
+          _logger.info("[DEBUG] Failed to fetch keyAttributes via SRP, user may not exist", e, s);
+          throw Exception("[DEBUG] Unable to verify user credentials with server");
+        }
+      }
+      
       _logger.info("[DEBUG] servicePassword hash: "+sha256.convert(utf8.encode(account.servicePassword)).toString());
       if (keyAttributes == null) {
-        throw Exception("[DEBUG] No key attributes found after login - backend must return full key attributes");
+        throw Exception("[DEBUG] No key attributes available after server fetch");
       }
       
       _logger.info("Decrypting secrets using service password and saved key attributes");
@@ -184,7 +194,18 @@ class _LoadingPageState extends State<LoadingPage> {
     }
   }
 
-  Future<void> _saveConfiguration(dynamic response) async {
+  Future<void> _saveConfiguration([dynamic response]) async {
+    // If no response provided, just save username (for login-only flow)
+    if (response == null) {
+      final Account? account = widget.accountNotifier?.value;
+      if (account != null && account.username.isNotEmpty) {
+        _logger.info("[DEBUG] Saving username to Flutter prefs: ${account.username}");
+        await Configuration.instance.setUsername(account.username);
+        _logger.info("[DEBUG] Saved username to Flutter prefs: ${account.username}");
+      }
+      return;
+    }
+
     final responseData = response is Map ? response : response.data as Map?;
     if (responseData == null) {
       _logger.info("Response data is null, cannot save configuration");

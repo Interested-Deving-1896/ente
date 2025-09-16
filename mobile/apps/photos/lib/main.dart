@@ -14,6 +14,7 @@ import "package:media_kit/media_kit.dart";
 import "package:package_info_plus/package_info_plus.dart";
 import 'package:photos/app.dart';
 import 'package:photos/core/configuration.dart';
+import 'package:photos/core/error-reporting/super_logging.dart';
 import 'package:photos/core/errors.dart';
 import 'package:photos/core/network/network.dart';
 import "package:photos/db/ml/db.dart";
@@ -67,6 +68,11 @@ Future<void> main() async {
   await RustLib.init();
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
+
+  // Initialize SuperLogging first
+  await SuperLogging.main(LogConfig());
+  // Ensure all log levels are captured in release builds
+  Logger.root.level = Level.ALL;
 
   const MethodChannel _accountChannel = MethodChannel('com.unplugged.photos/account');
   _accountChannel.setMethodCallHandler((MethodCall call) async {
@@ -357,6 +363,8 @@ Future<void> _sync(String caller) async {
 }
 
 Future _runWithLogs(Function() function, {String prefix = ""}) async {
+  // Ensure all log levels are captured in release builds
+  Logger.root.level = Level.ALL;
   await function();
 }
 

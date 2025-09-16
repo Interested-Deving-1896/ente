@@ -32,6 +32,13 @@ class MainActivity : FlutterFragmentActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         Log.d("UpEnte", "configureFlutterEngine called")
+        
+        // Enable Flutter logging in release builds
+        flutterEngine.dartExecutor.binaryMessenger.setMessageHandler("flutter/logs") { message, reply ->
+            val logData = String(message?.array() ?: byteArrayOf())
+            Log.d("Flutter", logData)
+            reply?.reply(null)
+        }
 
         GeneratedPluginRegistrant.registerWith(flutterEngine)
 

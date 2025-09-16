@@ -19,6 +19,12 @@
 -keep class io.flutter.embedding.** { *; }
 -keep class io.flutter.view.** { *; }
 
+# Keep Flutter VM and snapshot classes (CRITICAL for preventing crash)
+-keep class io.flutter.FlutterInjector { *; }
+-keep class io.flutter.FlutterLoader { *; }
+-keep class io.flutter.embedding.engine.FlutterEngine { *; }
+-keep class io.flutter.embedding.engine.dart.DartExecutor { *; }
+
 # Keep your app's main classes
 -keep class io.flutter.app.** { *; }
 -keep class io.flutter.plugin.** { *; }
@@ -32,7 +38,7 @@
 -dontwarn com.google.android.play.core.**
 -keep class com.google.android.play.core.** { *; }
 
-# Remove all debug logging in release builds
+## Remove all debug logging in release builds
 #-assumenosideeffects class android.util.Log {
 #    public static *** d(...);
 #    public static *** v(...);
@@ -41,22 +47,22 @@
 #    public static *** e(...);
 #    public static *** wtf(...);
 #}
-
-# Remove System.out.print calls
+#
+## Remove System.out.print calls
 #-assumenosideeffects class java.lang.System {
 #    public static void out.println(...);
 #    public static void err.println(...);
 #    public static void out.print(...);
 #    public static void err.print(...);
 #}
-
-# Remove Kotlin print functions
+#
+## Remove Kotlin print functions
 #-assumenosideeffects class kotlin.io.ConsoleKt {
 #    public static *** println(...);
 #    public static *** print(...);
 #}
 #
-## Remove Flutter/Dart print calls
+### Remove Flutter/Dart print calls
 #-assumenosideeffects class io.flutter.Log {
 #    public static *** d(...);
 #    public static *** v(...);
@@ -66,7 +72,7 @@
 #    public static *** wtf(...);
 #}
 #
-## Remove Flutter print() calls via System.out
+### Remove Flutter print() calls via System.out
 #-assumenosideeffects class java.io.PrintStream {
 #    public void print(...);
 #    public void println(...);
