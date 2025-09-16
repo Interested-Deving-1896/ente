@@ -28,7 +28,7 @@ type UPUserHandler struct {
 // SendOTT validates the JWT token and then calls the original SendOTT method
 func (h *UPUserHandler) SendOTT(c *gin.Context) {
 
-	if c.Request.Header.Get(middleware.AuthUserID) != "" {
+	if c.Request.Header.Get(middleware.AuthUserID) != "0" {
 		log.Warningf("SendOTT Trying to send OTT for logged userID %s, email %s",
 			c.Request.Header.Get(middleware.AuthUserID), c.Request.Header.Get(middleware.UpUsernameHeader))
 		handler.Error(c, stacktrace.Propagate(ente.ErrUserAlreadyRegistered, "user has already completed sign up process"))
