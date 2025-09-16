@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ente-io/museum/pkg/controller"
+	"github.com/ente-io/museum/pkg/middleware"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
@@ -27,6 +28,12 @@ type UPUserHandler struct {
 // SendOTT validates the JWT token and then calls the original SendOTT method
 func (h *UPUserHandler) SendOTT(c *gin.Context) {
 
+	if c.Request.Header.Get(middleware.AuthUserID) != "" {
+		log.Warningf("SendOTT Trying to send OTT for logged userID %s, email %s",
+			c.Request.Header.Get(middleware.AuthUserID), c.Request.Header.Get(middleware.UpUsernameHeader))
+		handler.Error(c, stacktrace.Propagate(ente.ErrUserAlreadyRegistered, "user has already completed sign up process"))
+		return
+	}
 	// Validate JWT token
 	authToken := c.GetHeader("Authorization")
 
@@ -35,6 +42,7 @@ func (h *UPUserHandler) SendOTT(c *gin.Context) {
 		handler.Error(c, stacktrace.Propagate(err, ""))
 		return
 	}
+	log.Infof("SendOTT, Sending OTT for %s", request.Purpose)
 	preferredUsername, _ := h.JWTValidator.GetPreferredUsername(authToken)
 	username, isError := buildEmailFromUsername(c, preferredUsername)
 	if isError {
