@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/ente-io/museum/pkg/controller/emergency"
-	"github.com/ente-io/museum/pkg/middleware"
 	"github.com/ente-io/museum/pkg/utils"
 	"github.com/gin-contrib/requestid"
 	"github.com/sirupsen/logrus"
@@ -34,11 +33,7 @@ type UserHandler struct {
 
 // SendOTT generates and sends an OTT to the provided email address
 func (h *UserHandler) SendOTT(c *gin.Context) {
-	if c.Request.Header.Get(middleware.AuthUserID) != "" {
-		logrus.Warningf("Trying to send OTT for logged userID %s, email %s",
-			c.Request.Header.Get(middleware.AuthUserID), c.Request.Header.Get(middleware.UpUsernameHeader))
 
-	}
 	var request ente.SendOTTRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		handler.Error(c, stacktrace.Propagate(err, ""))
