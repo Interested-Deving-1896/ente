@@ -51,18 +51,22 @@ func (h *AdminHandler) UPDeleteUser(context *gin.Context) {
 		"req_ctx":    "account_deletion",
 	})
 
-	// todo: (neeraj) refactor this part, currently there's a circular dependency between user and emergency controllers
 	removeLegacyErr := h.EmergencyController.HandleAccountDeletion(context, userID, logger)
 	if removeLegacyErr != nil {
 		handler.Error(context, stacktrace.Propagate(removeLegacyErr, ""))
 		return
 	}
-	response, err := h.UserController.BillingController.UPHandleAccountDeletion(userID, logger)
+	isCanceled, err := h.UserController.BillingController.UPHandleAccountDeletion(userID, logger)
+	if err != nil || isCanceled == false {
+		handler.Error(context, stacktrace.Propagate(err, ""))
+		return
+	}
+	deleted, err := h.UserController.HandleAccountDeletion(context, userID, logger)
 	if err != nil {
 		handler.Error(context, stacktrace.Propagate(err, ""))
 		return
 	}
 	go h.DiscordController.NotifyAdminAction(
 		fmt.Sprintf("Admin (%d) deleting account for %d", adminID, userID))
-	context.JSON(http.StatusOK, response)
+	context.JSON(http.StatusOK, deleted)
 }
