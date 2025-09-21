@@ -38,42 +38,42 @@
 -dontwarn com.google.android.play.core.**
 -keep class com.google.android.play.core.** { *; }
 
-## Remove all debug logging in release builds
-#-assumenosideeffects class android.util.Log {
-#    public static *** d(...);
-#    public static *** v(...);
-#    public static *** i(...);
-#    public static *** w(...);
-#    public static *** e(...);
-#    public static *** wtf(...);
-#}
-#
-## Remove System.out.print calls
-#-assumenosideeffects class java.lang.System {
-#    public static void out.println(...);
-#    public static void err.println(...);
-#    public static void out.print(...);
-#    public static void err.print(...);
-#}
-#
-## Remove Kotlin print functions
-#-assumenosideeffects class kotlin.io.ConsoleKt {
-#    public static *** println(...);
-#    public static *** print(...);
-#}
-#
-### Remove Flutter/Dart print calls
-#-assumenosideeffects class io.flutter.Log {
-#    public static *** d(...);
-#    public static *** v(...);
-#    public static *** i(...);
-#    public static *** w(...);
-#    public static *** e(...);
-#    public static *** wtf(...);
-#}
-#
-### Remove Flutter print() calls via System.out
-#-assumenosideeffects class java.io.PrintStream {
-#    public void print(...);
-#    public void println(...);
-#}
+# Remove all debug logging in release builds
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+    public static *** wtf(...);
+}
+
+# Remove System.out.print calls
+-assumenosideeffects class java.lang.System {
+    public static void out.println(...);
+    public static void err.println(...);
+    public static void out.print(...);
+    public static void err.print(...);
+}
+
+# Remove Kotlin print functions
+-assumenosideeffects class kotlin.io.ConsoleKt {
+    public static *** println(...);
+    public static *** print(...);
+}
+
+## Remove Flutter/Dart print calls
+-assumenosideeffects class io.flutter.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+    public static *** wtf(...);
+}
+
+## Remove Flutter print() calls via System.out
+-assumenosideeffects class java.io.PrintStream {
+    public void print(...);
+    public void println(...);
+}
