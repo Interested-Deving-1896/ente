@@ -1,0 +1,20 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="io.ente.photos">
+
+    <application>
+    <activity
+        android:name=".LoginActivity"
+        android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|uiMode"
+        android:exported="true"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+    </activity>
+    </application>
+    <!-- Only add dev-specific overrides here. Activities and application block will be inherited from main manifest. -->
+    <uses-permission android:name="com.unplugged.account.THIRD_PARTY_ACTIVITY" />
+
+</manifest>

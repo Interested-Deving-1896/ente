@@ -2,15 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="io.ente.photos">
 
-    <!-- Only add dev-specific overrides here. Activities and application block will be inherited from main manifest. -->
-
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="com.unplugged.account.dev.THIRD_PARTY_ACTIVITY" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <application>
+<application>
     <activity
         android:name=".LoginActivity"
         android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|uiMode"
@@ -22,5 +14,7 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
     </activity>
-    </application>
+</application>
+    <!-- Only add dev-specific overrides here. Activities and application block will be inherited from main manifest. -->
+    <uses-permission android:name="com.unplugged.account.dev.THIRD_PARTY_ACTIVITY" />
 </manifest>

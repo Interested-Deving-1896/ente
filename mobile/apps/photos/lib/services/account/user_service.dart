@@ -568,10 +568,10 @@ class UserService {
       );
       await dialog.hide();
       if (response.statusCode == 200) {
-        showShortToast(
-          context,
-          AppLocalizations.of(context).emailChangedTo(newEmail: email),
-        );
+        // showShortToast(
+        //   context,
+        //   AppLocalizations.of(context).emailChangedTo(newEmail: email),
+        // );
         await setEmail(email);
         Navigator.of(context).popUntil((route) => route.isFirst);
         Bus.instance.fire(UserDetailsChangedEvent());
@@ -930,10 +930,10 @@ class UserService {
       );
       await dialog.hide();
       if (response.statusCode == 200) {
-        showShortToast(
-          context,
-          AppLocalizations.of(context).authenticationSuccessful,
-        );
+        // showShortToast(
+        //   context,
+        //   AppLocalizations.of(context).authenticationSuccessful,
+        // );
         await _saveConfiguration(response);
         await Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
@@ -948,7 +948,7 @@ class UserService {
       await dialog.hide();
       _logger.severe(e);
       if (e.response != null && e.response!.statusCode == 404) {
-        showToast(context, AppLocalizations.of(context).sessionExpired);
+        // showToast(context, AppLocalizations.of(context).sessionExpired);
         await Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (BuildContext context) {
@@ -1016,7 +1016,7 @@ class UserService {
       await dialog.hide();
       _logger.severe('error while recovery 2fa', e);
       if (e.response != null && e.response!.statusCode == 404) {
-        showToast(context, AppLocalizations.of(context).sessionExpired);
+        // showToast(context, AppLocalizations.of(context).sessionExpired);
         // ignore: unawaited_futures
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
@@ -1097,10 +1097,10 @@ class UserService {
       );
       await dialog.hide();
       if (response.statusCode == 200) {
-        showShortToast(
-          context,
-          AppLocalizations.of(context).twofactorAuthenticationSuccessfullyReset,
-        );
+        // showShortToast(
+        //   context,
+        //   AppLocalizations.of(context).twofactorAuthenticationSuccessfullyReset,
+        // );
         await _saveConfiguration(response);
         // ignore: unawaited_futures
         Navigator.of(context).pushAndRemoveUntil(

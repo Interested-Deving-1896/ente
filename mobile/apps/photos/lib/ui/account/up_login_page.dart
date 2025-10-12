@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
 import 'package:photos/core/event_bus.dart';
@@ -73,34 +72,44 @@ class _LoadingPageState extends State<LoadingPage> {
       return;
     }
 
-    await Fluttertoast.showToast(msg: "Logging in...");
+    // await Fluttertoast.showToast(msg: "Logging in...");
 
     try {
       _logger.info("[DEBUG] Setting email and resetting volatile password");
       await UserService.instance.setEmail(account.username);
       Configuration.instance.resetVolatilePassword();
 
-      _logger.info("[DEBUG] Calling sendOttForAutomation with login purpose");
-      final response = await UserService.instance.sendOttForAutomation(account.upToken, purpose: "login");
-     
-      if (response == null) {
-        _logger.info("[DEBUG] Login response is null - user may not exist, trying registration");
-        await Fluttertoast.showToast(msg: "Login failed, trying registration...");
-        await _attemptRegistration(account);
-        return;
-      }
-      
-      _logger.info("[DEBUG] Received login response with keys: ${response is Map ? response.keys.toList() : 'not a map'}");
-      
-      
-      await _saveConfiguration(response);
+      // For login, try to fetch keyAttributes from server using SRP verification
+      await _saveConfiguration();
       _logger.info("[DEBUG] Configuration saved successfully");
 
-      final keyAttributes = Configuration.instance.getKeyAttributes();
-      _logger.info("[DEBUG] Loaded key attributes from config: ${keyAttributes != null ? keyAttributes.toJson() : 'null'}");
+      // Check if we have key attributes locally first
+      KeyAttributes? keyAttributes = Configuration.instance.getKeyAttributes();
+      _logger.info("[DEBUG] Local key attributes: ${keyAttributes != null ? keyAttributes.toJson() : 'null'}");
+      
+      // If no local keyAttributes, fetch from server using SRP
+      if (keyAttributes == null) {
+        _logger.info("[DEBUG] No local keyAttributes found, fetching from server using SRP verification");
+        try {
+          final dialog = createProgressDialog(context, "Fetching account data...");
+          final srpAttributes = await UserService.instance.getSrpAttributes(account.username);
+          await UserService.instance.verifyEmailViaPassword(
+            context,
+            srpAttributes,
+            account.servicePassword,
+            dialog,
+          );
+          keyAttributes = Configuration.instance.getKeyAttributes();
+          _logger.info("[DEBUG] Successfully fetched keyAttributes from server via SRP");
+        } catch (e, s) {
+          _logger.info("[DEBUG] Failed to fetch keyAttributes via SRP, user may not exist", e, s);
+          throw Exception("[DEBUG] Unable to verify user credentials with server");
+        }
+      }
+      
       _logger.info("[DEBUG] servicePassword hash: "+sha256.convert(utf8.encode(account.servicePassword)).toString());
       if (keyAttributes == null) {
-        throw Exception("[DEBUG] No key attributes found after login - backend must return full key attributes");
+        throw Exception("[DEBUG] No key attributes available after server fetch");
       }
       
       _logger.info("Decrypting secrets using service password and saved key attributes");
@@ -123,11 +132,11 @@ class _LoadingPageState extends State<LoadingPage> {
       }
 
       _logger.info("Login successful for ${Configuration.instance.getEmail()}");
-      await Fluttertoast.showToast(msg: "Login successful");
+      // await Fluttertoast.showToast(msg: "Login successful");
       await _onLoginSuccess();
     } catch (e, s) {
       _logger.info("Login failed — attempting fallback registration", e, s);
-      await Fluttertoast.showToast(msg: "Login failed, trying registration...");
+      //await Fluttertoast.showToast(msg: "Login failed, trying registration...");
       await _attemptRegistration(account);
     }
   }
@@ -142,21 +151,21 @@ class _LoadingPageState extends State<LoadingPage> {
 
     try {
       _logger.info("Attempting fallback registration for ${account.username}");
-      await Fluttertoast.showToast(msg: "Registering account...");
+      //await Fluttertoast.showToast(msg: "Registering account...");
 
       await UserService.instance.setEmail(account.username);
       Configuration.instance.resetVolatilePassword();
 
       final response = await UserService.instance.sendOttForAutomation(account.upToken, purpose: "signup");
       if (response == null) {
-        _logger.info("sendOttForAutomation (register) returned empty");
-        await Fluttertoast.showToast(msg: "Registration failed");
+        _logger.info("[DEBUG] REGISTRATION FAILED: sendOttForAutomation (signup) returned null");
+        // await Fluttertoast.showToast(msg: "Registration failed");
         await _showAuthenticationErrorDialog();
         return;
       }
       if (response["token"] == null) {
         _logger.info("[DEBUG] sendOttForAutomation (register) returned null token");
-        await Fluttertoast.showToast(msg: "Registration failed");
+      //  await Fluttertoast.showToast(msg: "Registration failed");
         await _showAuthenticationErrorDialog();
         return;
       }
@@ -169,23 +178,34 @@ class _LoadingPageState extends State<LoadingPage> {
 
       if (!Configuration.instance.hasConfiguredAccount() || Configuration.instance.getToken() == null) {
         _logger.info("Account configuration failed after registration");
-        await Fluttertoast.showToast(msg: "Registration failed");
+        // await Fluttertoast.showToast(msg: "Registration failed");
         await _handleAutomatedLoginFailure("Account setup incomplete after registration");
         return;
       }
 
       _logger.info("[DEBUG] Registration completed successfully");
-      await Fluttertoast.showToast(msg: "Registration successful");
+      //await Fluttertoast.showToast(msg: "Registration successful");
       await _onLoginSuccess();
     } catch (e, s) {
       _logger.info("[DEBUG] Automated registration failed", e, s);
-      await Fluttertoast.showToast(msg: "Registration failed");
+     // await Fluttertoast.showToast(msg: "Registration failed");
       await _showAuthenticationErrorDialog();
       return;
     }
   }
 
-  Future<void> _saveConfiguration(dynamic response) async {
+  Future<void> _saveConfiguration([dynamic response]) async {
+    // If no response provided, just save username (for login-only flow)
+    if (response == null) {
+      final Account? account = widget.accountNotifier?.value;
+      if (account != null && account.username.isNotEmpty) {
+        _logger.info("[DEBUG] Saving username to Flutter prefs: ${account.username}");
+        await Configuration.instance.setUsername(account.username);
+        _logger.info("[DEBUG] Saved username to Flutter prefs: ${account.username}");
+      }
+      return;
+    }
+
     final responseData = response is Map ? response : response.data as Map?;
     if (responseData == null) {
       _logger.info("Response data is null, cannot save configuration");
@@ -341,7 +361,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
   Future<void> _handleAutomatedLoginFailure(String message) async {
     _logger.info("Login/Registration failed: $message");
-    await Fluttertoast.showToast(msg: "Login failed: $message");
+    // await Fluttertoast.showToast(msg: "Login failed: $message");
     // Clear all configuration and sensitive data
     await Configuration.instance.logout(autoLogout: true);
   }

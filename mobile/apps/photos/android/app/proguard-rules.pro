@@ -19,6 +19,12 @@
 -keep class io.flutter.embedding.** { *; }
 -keep class io.flutter.view.** { *; }
 
+# Keep Flutter VM and snapshot classes (CRITICAL for preventing crash)
+-keep class io.flutter.FlutterInjector { *; }
+-keep class io.flutter.FlutterLoader { *; }
+-keep class io.flutter.embedding.engine.FlutterEngine { *; }
+-keep class io.flutter.embedding.engine.dart.DartExecutor { *; }
+
 # Keep your app's main classes
 -keep class io.flutter.app.** { *; }
 -keep class io.flutter.plugin.** { *; }
@@ -56,7 +62,7 @@
     public static *** print(...);
 }
 
-# Remove Flutter/Dart print calls
+## Remove Flutter/Dart print calls
 -assumenosideeffects class io.flutter.Log {
     public static *** d(...);
     public static *** v(...);
@@ -66,7 +72,7 @@
     public static *** wtf(...);
 }
 
-# Remove Flutter print() calls via System.out
+## Remove Flutter print() calls via System.out
 -assumenosideeffects class java.io.PrintStream {
     public void print(...);
     public void println(...);
