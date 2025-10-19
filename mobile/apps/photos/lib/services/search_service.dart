@@ -50,7 +50,7 @@ import "package:photos/services/machine_learning/face_ml/person/person_service.d
 import 'package:photos/services/machine_learning/semantic_search/semantic_search_service.dart';
 import "package:photos/services/memories_cache_service.dart";
 import "package:photos/states/location_screen_state.dart";
-import "package:photos/ui/viewer/location/add_location_sheet.dart";
+// import "package:photos/ui/viewer/location/add_location_sheet.dart";
 import "package:photos/ui/viewer/location/location_screen.dart";
 import "package:photos/ui/viewer/people/cluster_page.dart";
 import "package:photos/ui/viewer/people/people_page.dart";
@@ -1018,12 +1018,13 @@ class SearchService {
               city.city,
               results[city]!,
               onResultTap: (ctx) {
-                showAddLocationSheet(
-                  ctx,
-                  Location(latitude: city.lat, longitude: city.lng),
-                  name: city.city,
-                  radius: defaultCityRadius,
-                );
+                // Location add functionality - commented out to hide location adding
+                // showAddLocationSheet(
+                //   ctx,
+                //   Location(latitude: city.lat, longitude: city.lng),
+                //   name: city.city,
+                //   radius: defaultCityRadius,
+                // );
               },
               hierarchicalSearchFilter: LocationFilter(
                 locationTag: LocationTag(

@@ -17,8 +17,6 @@ import "package:photos/services/collections_service.dart";
 import "package:photos/services/machine_learning/face_ml/face_filtering/face_filtering_constants.dart";
 import "package:photos/services/search_service.dart";
 import "package:photos/ui/viewer/gallery/collection_page.dart";
-import "package:photos/ui/viewer/location/add_location_sheet.dart";
-import "package:photos/ui/viewer/location/pick_center_point_widget.dart";
 import "package:photos/utils/dialog_util.dart";
 import "package:photos/utils/navigation_util.dart";
 
@@ -146,11 +144,12 @@ extension SectionTypeExtensions on SectionType {
   FutureVoidCallback ctaOnTap(BuildContext context) {
     switch (this) {
       case SectionType.location:
+        // Location add functionality - commented out to hide location adding
         return () async {
-          final centerPoint = await showPickCenterPointSheet(context);
-          if (centerPoint != null) {
-            showAddLocationSheet(context, centerPoint);
-          }
+          // final centerPoint = await showPickCenterPointSheet(context);
+          // if (centerPoint != null) {
+          //   showAddLocationSheet(context, centerPoint);
+          // }
         };
       case SectionType.album:
         return () async {

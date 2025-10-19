@@ -481,12 +481,13 @@ class _GalleryAppBarWidgetState extends State<GalleryAppBarWidget> {
                   child: const Icon(CupertinoIcons.pin),
                 ),
         ),
-      if (galleryType == GalleryType.locationTag)
-        EntePopupMenuItem(
-          AppLocalizations.of(context).editLocation,
-          value: AlbumPopupAction.editLocation,
-          icon: Icons.edit_outlined,
-        ),
+      // Location edit option - commented out to hide location editing
+      // if (galleryType == GalleryType.locationTag)
+      //   EntePopupMenuItem(
+      //     AppLocalizations.of(context).editLocation,
+      //     value: AlbumPopupAction.editLocation,
+      //     icon: Icons.edit_outlined,
+      //   ),
       if (galleryType == GalleryType.locationTag)
         EntePopupMenuItem(
           AppLocalizations.of(context).deleteLocation,
@@ -640,8 +641,8 @@ class _GalleryAppBarWidgetState extends State<GalleryAppBarWidget> {
             await onCleanUncategorizedClick(context);
           } else if (value == AlbumPopupAction.downloadAlbum) {
             await _downloadPublicAlbumToGallery(widget.files!);
-          } else if (value == AlbumPopupAction.editLocation) {
-            editLocation();
+          // } else if (value == AlbumPopupAction.editLocation) {
+          //   editLocation();
           } else if (value == AlbumPopupAction.deleteLocation) {
             await deleteLocation();
           } else if (value == AlbumPopupAction.galleryGuestView) {

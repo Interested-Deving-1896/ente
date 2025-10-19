@@ -396,18 +396,19 @@ class _FileSelectionActionsWidgetState
       );
     }
 
-    if (widget.type.showEditLocation()) {
-      items.add(
-        SelectionActionButton(
-          shouldShow: widget.selectedFiles.files.any(
-            (element) => (element.ownerID == currentUserID),
-          ),
-          labelText: AppLocalizations.of(context).editLocation,
-          icon: Icons.edit_location_alt_outlined,
-          onTap: _editLocation,
-        ),
-      );
-    }
+    // Location edit button - commented out to hide from selection menu
+    // if (widget.type.showEditLocation()) {
+    //   items.add(
+    //     SelectionActionButton(
+    //       shouldShow: widget.selectedFiles.files.any(
+    //         (element) => (element.ownerID == currentUserID),
+    //       ),
+    //       labelText: AppLocalizations.of(context).editLocation,
+    //       icon: Icons.edit_location_alt_outlined,
+    //       onTap: _editLocation,
+    //     ),
+    //   );
+    // }
 
     if (showDownloadOption) {
       items.add(
