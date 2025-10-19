@@ -5,8 +5,10 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import "package:log_viewer/log_viewer.dart";
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart';
@@ -186,10 +188,10 @@ class SuperLogging {
     // write to stdout
     printLog(str);
 
-    saveLogString(str, rec.error);
+    saveLogString(str, rec.error, rec: rec);
   }
 
-  static void saveLogString(String str, Object? error) {
+  static void saveLogString(String str, Object? error, {LogRecord? rec}) {
     // push to log queue
     if (fileIsEnabled) {
       fileQueueEntries.add(str + '\n');
@@ -304,5 +306,16 @@ class SuperLogging {
     }
     final pkgName = (await PackageInfo.fromPlatform()).packageName;
     return pkgName.startsWith("io.ente.photos.fdroid");
+  }
+
+  /// Show the log viewer page
+  /// This is the main integration point for accessing the log viewer
+  static void showLogViewer(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LogViewerPage(),
+      ),
+    );
   }
 }

@@ -9,12 +9,18 @@ import 'package:photos/theme/ente_theme.dart';
 import 'package:photos/ui/components/captioned_text_widget.dart';
 import 'package:photos/ui/components/expandable_menu_item_widget.dart';
 import 'package:photos/ui/components/menu_item_widget/menu_item_widget.dart';
+import 'package:photos/ui/components/toggle_switch_widget.dart';
 import 'package:photos/ui/notification/toast.dart';
 import 'package:photos/ui/settings/common_settings.dart';
 
-class DebugSectionWidget extends StatelessWidget {
+class DebugSectionWidget extends StatefulWidget {
   const DebugSectionWidget({super.key});
 
+  @override
+  State<DebugSectionWidget> createState() => _DebugSectionWidgetState();
+}
+
+class _DebugSectionWidgetState extends State<DebugSectionWidget> {
   @override
   Widget build(BuildContext context) {
     return ExpandableMenuItemWidget(
@@ -27,6 +33,49 @@ class DebugSectionWidget extends StatelessWidget {
   Widget _getSectionOptions(BuildContext context) {
     return Column(
       children: [
+        sectionOptionSpacing,
+        MenuItemWidget(
+          captionedTextWidget: const CaptionedTextWidget(
+            title: "Enable database logging",
+          ),
+          pressedColor: getEnteColorScheme(context).fillFaint,
+          trailingWidget: ToggleSwitchWidget(
+            value: () => localSettings.enableDatabaseLogging,
+            onChanged: () async {
+              final newValue = !localSettings.enableDatabaseLogging;
+              await localSettings.setEnableDatabaseLogging(newValue);
+              setState(() {});
+              showShortToast(
+                context,
+                newValue
+                    ? "Database logging enabled. Restart app."
+                    : "Database logging disabled. Restart app.",
+              );
+            },
+          ),
+        ),
+        sectionOptionSpacing,
+        MenuItemWidget(
+          captionedTextWidget: const CaptionedTextWidget(
+            title: "Show local ID over thumbnails",
+          ),
+          pressedColor: getEnteColorScheme(context).fillFaint,
+          trailingWidget: ToggleSwitchWidget(
+            value: () => localSettings.showLocalIDOverThumbnails,
+            onChanged: () async {
+              await localSettings.setShowLocalIDOverThumbnails(
+                !localSettings.showLocalIDOverThumbnails,
+              );
+              setState(() {});
+              showShortToast(
+                context,
+                localSettings.showLocalIDOverThumbnails
+                    ? "Local IDs will be shown. Restart app."
+                    : "Local IDs hidden. Restart app.",
+              );
+            },
+          ),
+        ),
         sectionOptionSpacing,
         MenuItemWidget(
           captionedTextWidget: const CaptionedTextWidget(

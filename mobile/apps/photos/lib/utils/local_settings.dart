@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:photos/core/constants.dart';
 import 'package:photos/ui/viewer/gallery/component/group/type.dart';
 import "package:photos/utils/ram_check_util.dart";
@@ -41,6 +43,8 @@ class LocalSettings {
       "hide_shared_items_from_home_gallery";
   static const kCollectionViewType = "collection_view_type";
   static const kCollectionSortDirection = "collection_sort_direction";
+  static const kShowLocalIDOverThumbnails = "show_local_id_over_thumbnails";
+  static const kEnableDatabaseLogging = "enable_db_logging";
 
   final SharedPreferences _prefs;
 
@@ -217,4 +221,18 @@ class LocalSettings {
 
   bool get hideSharedItemsFromHomeGallery =>
       _prefs.getBool(_hideSharedItemsFromHomeGalleryTag) ?? false;
+
+  bool get showLocalIDOverThumbnails =>
+      _prefs.getBool(kShowLocalIDOverThumbnails) ?? false;
+
+  Future<void> setShowLocalIDOverThumbnails(bool value) async {
+    await _prefs.setBool(kShowLocalIDOverThumbnails, value);
+  }
+
+  bool get enableDatabaseLogging =>
+      _prefs.getBool(kEnableDatabaseLogging) ?? kDebugMode;
+
+  Future<void> setEnableDatabaseLogging(bool value) async {
+    await _prefs.setBool(kEnableDatabaseLogging, value);
+  }
 }

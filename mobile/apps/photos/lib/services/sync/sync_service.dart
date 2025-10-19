@@ -220,11 +220,12 @@ class SyncService {
         await _remoteSyncService.sync();
         _logger.info('[UPLOAD_SYNC] Second remote sync completed');
       }
+
       if (!isProcessBg) {
         await smartAlbumsService.syncSmartAlbums();
       }
     } else {
-      _logger.info('[UPLOAD_SYNC] First import not completed yet, skipping remote sync');
+      _logger.info("[SYNC] First import not completed, skipping remote");
     }
     _logger.info('[UPLOAD_SYNC] _doSync() completed');
   }

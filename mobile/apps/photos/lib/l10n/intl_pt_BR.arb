@@ -1170,7 +1170,6 @@
   },
   "maps": "Mapas",
   "enableMaps": "Ativar mapas",
-  "enableMapsDesc": "Isso exibirá suas fotos em um mapa mundial.\n\nEste mapa é hospedado por Open Street Map, e as exatas localizações das fotos nunca serão compartilhadas.\n\nVocê pode desativar esta função a qualquer momento em Opções.",
   "quickLinks": "Links rápidos",
   "selectItemsToAdd": "Selecionar itens para adicionar",
   "addSelected": "Adicionar selecionado",
@@ -1776,14 +1775,6 @@
   "same": "Igual",
   "different": "Diferente",
   "sameperson": "Mesma pessoa?",
-  "cLTitle1": "Editor de Imagens Avançado",
-  "cLDesc1": "Estamos lançando um novo editor de fotos avançado que adiciona mais quadros de recorte, predefinições de filtro para edições rápidas, ajustes para afinação incluindo saturação, contraste, brilho, temperatura e mais. O novo editor também incluí a habilidade de desenhar em suas fotos e adicionar emojis como figurinhas.",
-  "cLTitle2": "Álbuns Inteligentes",
-  "cLDesc2": "Você agora pode adicionar automaticamente fotos de pessoas selecionadas para qualquer álbum. É só ir ao álbum, selecionar \"adicionar pessoa auto.\" no menu avançado. Se usado junto ao álbum compartilhado, você pode compartilhar fotos sem maior esforço.",
-  "cLTitle3": "Galeria Aprimorada",
-  "cLDesc3": "Adicionamos a habilidade de agrupar sua galeria por semanas, meses, e anos. Você pode personalizar sua galeria para parecer exatamente a maneira que desejar usando as novas opções de agrupamento, junto às grades personalizadas",
-  "cLTitle4": "Arrastar Rápido",
-  "cLDesc4": "Junto ao tanto de melhorias salva-vidas para melhorar a experiência de arraste na galeria, também redesenhamos a barra de deslize para exibir marcadores, permitindo você pular a timeline rapidamente.",
   "indexingPausedStatusDescription": "A indexação foi pausada. Ela retomará automaticamente quando o dispositivo estiver pronto. O dispositivo é considerado pronto quando o nível de bateria, saúde da bateria, e estado térmico estejam num alcance saudável.",
   "thisWeek": "Esta semana",
   "lastWeek": "Semana passada",
@@ -1808,7 +1799,6 @@
   "automaticallyAnalyzeAndSplitGrouping": "Determinaremos automaticamente o agrupamento para saber se há várias pessoas presentes, e separá-las novamente. Isso deve levar alguns segundos.",
   "layout": "Layout",
   "day": "Dia",
-  "peopleAutoAddDesc": "Selecione as pessoas que deseja adicionar automaticamente ao álbum",
   "undo": " Desfazer ",
   "redo": "Refazer",
   "filter": "Filtrar",
@@ -1827,5 +1817,9 @@
         "type": "int"
       }
     }
+  },
+  "closeBy": "Parecida",
+  "@closeBy": {
+    "description": "Appears in the similar images page, to indicate that the images are close in terms of appearance"
   }
 }

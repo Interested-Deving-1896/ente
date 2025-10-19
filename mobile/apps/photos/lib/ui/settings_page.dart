@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import "package:log_viewer/log_viewer.dart";
 import 'package:photos/core/configuration.dart';
 import 'package:photos/core/event_bus.dart';
 import 'package:photos/events/opened_settings_event.dart';
@@ -21,7 +22,6 @@ import 'package:photos/ui/settings/storage_card_widget.dart';
 import 'package:photos/ui/settings/support_section_widget.dart';
 import 'package:photos/ui/settings/theme_switch_widget.dart';
 import "package:photos/ui/sharing/verify_identity_dialog.dart";
-import 'package:photos/utils/email_util.dart';
 
 class SettingsPage extends StatelessWidget {
   final ValueNotifier<String?> emailNotifier;
@@ -56,12 +56,36 @@ class SettingsPage extends StatelessWidget {
               // [AnimatedBuilder] accepts any [Listenable] subtype.
               animation: emailNotifier,
               builder: (BuildContext context, Widget? child) {
-                return Text(
-                  getUsernameFromEmail(emailNotifier.value!),
-                  style: enteTextTheme.body.copyWith(
-                    color: colorScheme.textMuted,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        emailNotifier.value!,
+                        style: enteTextTheme.body.copyWith(
+                          color: colorScheme.textMuted,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    if (localSettings.enableDatabaseLogging)
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const LogViewerPage(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(
+                            Icons.bug_report,
+                            size: 20,
+                            color: colorScheme.textMuted,
+                          ),
+                        ),
+                      ),
+                  ],
                 );
               },
             ),
