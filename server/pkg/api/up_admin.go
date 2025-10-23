@@ -39,7 +39,6 @@ func (h *AdminHandler) UPDeleteUser(context *gin.Context) {
 		handler.Error(context, stacktrace.Propagate(ente.ErrBadRequest, "email id is missing"))
 		return
 	}
-
 	userID, username, err := h.UserUtils.GetUserID(username)
 
 	adminID := auth.GetUserID(context.Request.Header)
@@ -58,11 +57,13 @@ func (h *AdminHandler) UPDeleteUser(context *gin.Context) {
 	}
 	isCanceled, err := h.UserController.BillingController.UPHandleAccountDeletion(userID, logger)
 	if err != nil || isCanceled == false {
+		logrus.Error("Something went wrong with the subscription cancellation {} ", err)
 		handler.Error(context, stacktrace.Propagate(err, ""))
 		return
 	}
 	deleted, err := h.UserController.HandleAccountDeletion(context, userID, logger)
 	if err != nil {
+		logrus.Error("Something went wrong with the account deletion {} ", err)
 		handler.Error(context, stacktrace.Propagate(err, ""))
 		return
 	}

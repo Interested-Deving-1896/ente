@@ -82,15 +82,15 @@ func (c *BillingController) UPHandleAccountDeletion(userID int64, logger *log.En
 	if subscription.ProductID == ente.FamilyPlanProductID || subscription.ProductID == "" {
 		return false, stacktrace.NewError(fmt.Sprintf("unexpected product id %s", subscription.ProductID), "")
 	}
-	isCancelled = subscription.Attributes.IsCancelled
 	// delete customer data from Stripe if user is on paid plan.
 	logger.Info("Updating originalTransactionID for UNPLUGGED provider")
 	err = c.BillingRepo.UpdateTransactionIDOnDeletion(userID)
 	if err != nil {
 		return false, stacktrace.Propagate(err, "")
+	} else {
+		logger.Info("Updated originalTransactionID for UNPLUGGED provider")
+		return true, nil
 	}
-
-	return isCancelled, nil
 }
 
 // UPVerifySubscription verifies and returns the verified subscription
