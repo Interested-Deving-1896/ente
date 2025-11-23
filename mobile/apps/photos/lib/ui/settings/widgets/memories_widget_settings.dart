@@ -131,10 +131,10 @@ class _MemoriesWidgetSettingsState extends State<MemoriesWidgetSettings> {
                     SizedBox(
                       height: MediaQuery.sizeOf(context).height * 0.5 - 200,
                     ),
-                    Image.asset(
-                      "assets/memories-widget-static.png",
-                      height: 160,
-                    ),
+                    // Image.asset(
+                    //   "assets/memories-widget-static.png",
+                    //   height: 160,
+                    // ),
                   ],
                 ),
               ),

@@ -149,10 +149,10 @@ class _AlbumsWidgetSettingsState extends State<AlbumsWidgetSettings> {
                       SizedBox(
                         height: MediaQuery.sizeOf(context).height * 0.5 - 200,
                       ),
-                      Image.asset(
-                        "assets/albums-widget-static.png",
-                        height: 160,
-                      ),
+                      // Image.asset(
+                      //   "assets/albums-widget-static.png",
+                      //   height: 160,
+                      // ),
                     ],
                   ),
                 ),
