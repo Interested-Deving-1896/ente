@@ -11,4 +11,9 @@
             <certificates src="system" />
         </trust-anchors>
     </domain-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">static.hotjar.com</domain>€
+        <trust-anchors>
+        </trust-anchors>
+    </domain-config>
 </network-security-config>

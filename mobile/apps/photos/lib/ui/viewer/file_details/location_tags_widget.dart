@@ -20,7 +20,6 @@ import "package:photos/ui/map/image_marker.dart";
 import "package:photos/ui/map/map_screen.dart";
 import "package:photos/ui/map/map_view.dart";
 import "package:photos/ui/map/tile/layers.dart";
-import 'package:photos/ui/viewer/location/add_location_sheet.dart';
 import "package:photos/ui/viewer/location/location_screen.dart";
 import "package:photos/utils/navigation_util.dart";
 
@@ -112,10 +111,12 @@ class _LocationTagsWidgetState extends State<LocationTagsWidget> {
           title = AppLocalizations.of(context).addLocation;
           leadingIcon = Icons.add_location_alt_outlined;
           hasChipButtons = false;
-          onTap = () => showAddLocationSheet(
-                context,
-                widget.file.location!,
-              );
+          // Location add functionality - commented out to hide location adding
+          // onTap = () => showAddLocationSheet(
+          //       context,
+          //       widget.file.location!,
+          //     );
+          onTap = null;
         });
       }
       return [
@@ -149,13 +150,14 @@ class _LocationTagsWidgetState extends State<LocationTagsWidget> {
             ),
           )
           .toList();
-      result.add(
-        ChipButtonWidget(
-          null,
-          leadingIcon: Icons.add_outlined,
-          onTap: () => showAddLocationSheet(context, widget.file.location!),
-        ),
-      );
+      // Location add chip button - commented out to hide location adding
+      // result.add(
+      //   ChipButtonWidget(
+      //     null,
+      //     leadingIcon: Icons.add_outlined,
+      //     onTap: () => showAddLocationSheet(context, widget.file.location!),
+      //   ),
+      // );
       return result;
     }
   }
