@@ -2,9 +2,12 @@ package api
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/ente-io/museum/pkg/controller"
 	"github.com/ente-io/museum/pkg/middleware"
+	"github.com/gin-contrib/requestid"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
@@ -34,9 +37,10 @@ func (h *UPUserHandler) SendOTT(c *gin.Context) {
 		return
 	}
 
-	if c.Request.Header.Get(middleware.AuthUserID) != "0" && request.Purpose == ente.SignUpOTTPurpose {
+	userID, err := strconv.ParseInt(c.Request.Header.Get(middleware.AuthUserID), 10, 64)
+	if userID != 0 && request.Purpose == ente.SignUpOTTPurpose {
 		log.Warningf("SendOTT Trying to send OTT for logged userID %s, email %s",
-			c.Request.Header.Get(middleware.AuthUserID), c.Request.Header.Get(middleware.UpUsernameHeader))
+			userID, c.Request.Header.Get(middleware.UpUsernameHeader))
 		handler.Error(c, stacktrace.Propagate(ente.ErrUserAlreadyRegistered, "user has already completed sign up process"))
 		return
 	}
@@ -53,8 +57,19 @@ func (h *UPUserHandler) SendOTT(c *gin.Context) {
 	if request.Purpose == ente.SignUpOTTPurpose || request.Purpose == ente.LoginOTTPurpose {
 		err := h.UserController.SendEmailOTT(c, username, request.Purpose, request.Mobile)
 		if err != nil {
-			handler.Error(c, stacktrace.Propagate(err, ""))
-			return
+			if strings.Contains(err.Error(), "user has not completed sign up process") {
+				logger := log.WithFields(log.Fields{
+					"user_id":    userID,
+					"user_email": username,
+					"req_id":     requestid.Get(c),
+					"req_ctx":    "account_deletion",
+				})
+				_, err := h.UserController.HandleAccountDeletion(c, userID, logger)
+				if err != nil {
+					handler.Error(c, stacktrace.Propagate(err, ""))
+					return
+				}
+			}
 		}
 	} else {
 		log.Errorf("Current OTT Purpose: %s. It must be %s", request.Purpose, ente.SignUpOTTPurpose)
