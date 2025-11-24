@@ -592,17 +592,20 @@ class RemoteSyncService {
   }
 
   Future<bool> _uploadFiles(List<EnteFile> filesToBeUploaded) async {
-    _logger.info('[UPLOAD_SYNC] Starting _uploadFiles with ${filesToBeUploaded.length} files to upload');
+    _logger.info(
+        '[UPLOAD_SYNC] Starting _uploadFiles with ${filesToBeUploaded.length} files to upload',);
     final int ownerID = _config.getUserID()!;
     final updatedFileIDs = await _db.getUploadedFileIDsToBeUpdated(ownerID);
     if (updatedFileIDs.isNotEmpty) {
-      _logger.info("[UPLOAD_SYNC] Identified ${updatedFileIDs.length} files for reupload");
+      _logger.info(
+          "[UPLOAD_SYNC] Identified ${updatedFileIDs.length} files for reupload",);
     }
 
     _completedUploads = 0;
     _ignoredUploads = 0;
     final int toBeUploaded = filesToBeUploaded.length + updatedFileIDs.length;
-    _logger.info('[UPLOAD_SYNC] Total files to be uploaded: $toBeUploaded (new: ${filesToBeUploaded.length}, updated: ${updatedFileIDs.length})');
+    _logger.info(
+        '[UPLOAD_SYNC] Total files to be uploaded: $toBeUploaded (new: ${filesToBeUploaded.length}, updated: ${updatedFileIDs.length})',);
 
     if (toBeUploaded > 0) {
       _logger.internalInfo(
@@ -637,7 +640,8 @@ class RemoteSyncService {
       // verify if files upload is allowed based on their subscription plan and
       // storage limit. To avoid creating new endpoint, we are using
       // fetchUploadUrls as alternative method.
-      _logger.info('[UPLOAD_SYNC] Fetching upload URLs for $toBeUploaded files...');
+      _logger.info(
+          '[UPLOAD_SYNC] Fetching upload URLs for $toBeUploaded files...',);
       _logger.internalInfo("[UPLOAD-DEBUG] Step 2/3: Network check passed ✓");
 
       // Step 3: Fetch upload URLs from server

@@ -49,55 +49,56 @@ class SettingsPage extends StatelessWidget {
     const sectionSpacing = SizedBox(height: 8);
     contents.add(
       Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: AnimatedBuilder(
-              // [AnimatedBuilder] accepts any [Listenable] subtype.
-              animation: emailNotifier,
-              builder: (BuildContext context, Widget? child) {
-                return Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        emailNotifier.value!,
-                        style: enteTextTheme.body.copyWith(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: AnimatedBuilder(
+            // [AnimatedBuilder] accepts any [Listenable] subtype.
+            animation: emailNotifier,
+            builder: (BuildContext context, Widget? child) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      emailNotifier.value!,
+                      style: enteTextTheme.body.copyWith(
+                        color: colorScheme.textMuted,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  if (localSettings.enableDatabaseLogging)
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const LogViewerPage(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Icon(
+                          Icons.bug_report,
+                          size: 20,
                           color: colorScheme.textMuted,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
-                    if (localSettings.enableDatabaseLogging)
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const LogViewerPage(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Icon(
-                            Icons.bug_report,
-                            size: 20,
-                            color: colorScheme.textMuted,
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
+                ],
+              );
+            },
           ),
         ),
+      ),
     );
 
     contents.add(const SizedBox(height: 8));
     if (hasLoggedIn) {
       contents.addAll([
         const StorageCardWidget(),
-        const SizedBox(height: 16), // Add margin between storage card and backup section
+        const SizedBox(
+            height: 16,), // Add margin between storage card and backup section
         const BackupSectionWidget(),
         sectionSpacing,
       ]);

@@ -144,7 +144,7 @@ class _PasswordEntryPageState extends State<PasswordEntryPage> {
     Color passwordStrengthColor = Colors.redAccent;
     if (_passwordStrength > kStrongPasswordStrengthThreshold) {
       passwordStrengthText = AppLocalizations.of(context).strongStrength;
-              passwordStrengthColor = const Color(0xFF475CC7);
+      passwordStrengthColor = const Color(0xFF475CC7);
     } else if (_passwordStrength > kMildPasswordStrengthThreshold) {
       passwordStrengthText = AppLocalizations.of(context).moderateStrength;
       passwordStrengthColor = Colors.orangeAccent;

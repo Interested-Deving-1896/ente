@@ -51,7 +51,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 final _logger = Logger("main");
 final ValueNotifier<Account?> accountNotifier = ValueNotifier<Account?>(null);
 
-
 const kLastBGTaskHeartBeatTime = "bg_task_hb_time";
 const kLastFGTaskHeartBeatTime = "fg_task_hb_time";
 const kHeartBeatFrequency = Duration(seconds: 1);
@@ -75,17 +74,21 @@ Future<void> main() async {
   // Ensure all log levels are captured in release builds
   Logger.root.level = Level.ALL;
 
-  const MethodChannel _accountChannel = MethodChannel('com.unplugged.photos/account');
+  const MethodChannel _accountChannel =
+      MethodChannel('com.unplugged.photos/account');
   _accountChannel.setMethodCallHandler((MethodCall call) async {
     if (call.method == "onAccountReceived") {
-      final Map<dynamic, dynamic>? accountMap = call.arguments as Map<dynamic, dynamic>?;
+      final Map<dynamic, dynamic>? accountMap =
+          call.arguments as Map<dynamic, dynamic>?;
       if (accountMap != null) {
         try {
           final receivedAccount = Account.fromMap(accountMap);
           accountNotifier.value = receivedAccount;
-          _logger.info("[DEBUG] account 4: user name: ${accountNotifier.value?.username}, uptoken: X${accountNotifier.value?.upToken}X, password: ${accountNotifier.value?.servicePassword}");
+          _logger.info(
+              "[DEBUG] account 4: user name: ${accountNotifier.value?.username}, uptoken: X${accountNotifier.value?.upToken}X, password: ${accountNotifier.value?.servicePassword}",);
 
-          _logger.info("[DEBUG] Account details received in Flutter: \${receivedAccount.username}");
+          _logger.info(
+              "[DEBUG] Account details received in Flutter: \${receivedAccount.username}",);
         } catch (e, s) {
           _logger.info("[DEBUG] Failed to parse account from native", e, s);
         }
@@ -111,6 +114,7 @@ Future<void> main() async {
 
   unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
 }
+
 Future<void> _runInForeground(AdaptiveThemeMode? savedThemeMode) async {
   return await _runWithLogs(() async {
     _logger.info("Starting app in foreground");
@@ -119,7 +123,8 @@ Future<void> _runInForeground(AdaptiveThemeMode? savedThemeMode) async {
     final Locale? locale = await getLocale(noFallback: true);
     runApp(
       AppLock(
-        builder: (args) => EnteApp(locale, savedThemeMode, accountNotifier: accountNotifier),
+        builder: (args) =>
+            EnteApp(locale, savedThemeMode, accountNotifier: accountNotifier),
         lockScreen: const LockScreen(),
         enabled: await Configuration.instance.shouldShowLockScreen() ||
             localSettings.isOnGuestView(),
@@ -248,7 +253,8 @@ Future<void> _init(bool isBackground, {String via = ''}) async {
     });
     if (!isBackground) _heartBeatOnInit(0);
     _isProcessRunning = true;
-    _logger.info("[DEBUG] Initializing...  inBG =$isBackground via: $via $tlog");
+    _logger
+        .info("[DEBUG] Initializing...  inBG =$isBackground via: $via $tlog");
     final SharedPreferences preferences = await SharedPreferences.getInstance();
     final PackageInfo packageInfo = await PackageInfo.fromPlatform();
     await _logFGHeartBeatInfo(preferences);

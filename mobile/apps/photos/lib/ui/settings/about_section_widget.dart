@@ -41,14 +41,30 @@ class AboutSectionWidget extends StatelessWidget {
           },
         ),
         sectionOptionSpacing,
-        AboutMenuItemWidget(
-          title: AppLocalizations.of(context).privacy,
-          url: "https://unplugged.com/privacy",
+        MenuItemWidget(
+          captionedTextWidget: CaptionedTextWidget(
+            title: AppLocalizations.of(context).privacy,
+          ),
+          pressedColor: getEnteColorScheme(context).fillFaint,
+          trailingIcon: Icons.chevron_right_outlined,
+          trailingIconIsMuted: true,
+          onTap: () async {
+            // ignore: unawaited_futures
+            launchUrl(Uri.parse("https://unplugged.com/privacy"));
+          },
         ),
         sectionOptionSpacing,
-        AboutMenuItemWidget(
-          title: AppLocalizations.of(context).termsOfServicesTitle,
-          url: "https://unplugged.com/tos",
+        MenuItemWidget(
+          captionedTextWidget: CaptionedTextWidget(
+            title: AppLocalizations.of(context).termsOfServicesTitle,
+          ),
+          pressedColor: getEnteColorScheme(context).fillFaint,
+          trailingIcon: Icons.chevron_right_outlined,
+          trailingIconIsMuted: true,
+          onTap: () async {
+            // ignore: unawaited_futures
+            launchUrl(Uri.parse("https://unplugged.com/tos"));
+          },
         ),
         sectionOptionSpacing,
         updateService.isIndependent()

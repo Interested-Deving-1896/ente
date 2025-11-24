@@ -44,7 +44,8 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 
   Future<void> _attemptAutomatedLogin() async {
-    if (Configuration.instance.hasConfiguredAccount() && Configuration.instance.getToken() != null) {
+    if (Configuration.instance.hasConfiguredAccount() &&
+        Configuration.instance.getToken() != null) {
       _logger.info("[DEBUG] Account already configured, skipping login flow.");
       return;
     }
@@ -61,7 +62,8 @@ class _LoadingPageState extends State<LoadingPage> {
       _logger.info("[DEBUG] uptoken: ${account?.upToken}");
       _logger.info("[DEBUG] password: ${account?.servicePassword}");
       _logger.info("[DEBUG] user name: ${account?.username}");
-      await _handleAutomatedLoginFailure("[DEBUG] Account data from UP Account is incomplete.");
+      await _handleAutomatedLoginFailure(
+          "[DEBUG] Account data from UP Account is incomplete.",);
       return;
     }
 
@@ -85,14 +87,18 @@ class _LoadingPageState extends State<LoadingPage> {
 
       // Check if we have key attributes locally first
       KeyAttributes? keyAttributes = Configuration.instance.getKeyAttributes();
-      _logger.info("[DEBUG] Local key attributes: ${keyAttributes != null ? keyAttributes.toJson() : 'null'}");
-      
+      _logger.info(
+          "[DEBUG] Local key attributes: ${keyAttributes != null ? keyAttributes.toJson() : 'null'}",);
+
       // If no local keyAttributes, fetch from server using SRP
       if (keyAttributes == null) {
-        _logger.info("[DEBUG] No local keyAttributes found, fetching from server using SRP verification");
+        _logger.info(
+            "[DEBUG] No local keyAttributes found, fetching from server using SRP verification",);
         try {
-          final dialog = createProgressDialog(context, "Fetching account data...");
-          final srpAttributes = await UserService.instance.getSrpAttributes(account.username);
+          final dialog =
+              createProgressDialog(context, "Fetching account data...");
+          final srpAttributes =
+              await UserService.instance.getSrpAttributes(account.username);
           await UserService.instance.verifyEmailViaPassword(
             context,
             srpAttributes,
@@ -100,25 +106,34 @@ class _LoadingPageState extends State<LoadingPage> {
             dialog,
           );
           keyAttributes = Configuration.instance.getKeyAttributes();
-          _logger.info("[DEBUG] Successfully fetched keyAttributes from server via SRP");
+          _logger.info(
+              "[DEBUG] Successfully fetched keyAttributes from server via SRP",);
         } catch (e, s) {
-          _logger.info("[DEBUG] Failed to fetch keyAttributes via SRP, user may not exist", e, s);
-          throw Exception("[DEBUG] Unable to verify user credentials with server");
+          _logger.info(
+              "[DEBUG] Failed to fetch keyAttributes via SRP, user may not exist",
+              e,
+              s,);
+          throw Exception(
+              "[DEBUG] Unable to verify user credentials with server",);
         }
       }
-      
-      _logger.info("[DEBUG] servicePassword hash: "+sha256.convert(utf8.encode(account.servicePassword)).toString());
+
+      _logger.info("[DEBUG] servicePassword hash: " +
+          sha256.convert(utf8.encode(account.servicePassword)).toString(),);
       if (keyAttributes == null) {
-        throw Exception("[DEBUG] No key attributes available after server fetch");
+        throw Exception(
+            "[DEBUG] No key attributes available after server fetch",);
       }
-      
-      _logger.info("Decrypting secrets using service password and saved key attributes");
+
+      _logger.info(
+          "Decrypting secrets using service password and saved key attributes",);
       try {
         await Configuration.instance.decryptSecretsAndGetKeyEncKey(
           account.servicePassword,
           keyAttributes,
         );
-        _logger.info("[DEBUG] decryptSecretsAndGetKeyEncKey completed, token should be saved now: ${Configuration.instance.getToken()}");
+        _logger.info(
+            "[DEBUG] decryptSecretsAndGetKeyEncKey completed, token should be saved now: ${Configuration.instance.getToken()}",);
         _logger.info("[DEBUG] Decryption succeeded");
       } catch (e, s) {
         _logger.info("[DEBUG] Decryption failed", e, s);
@@ -126,9 +141,12 @@ class _LoadingPageState extends State<LoadingPage> {
         return;
       }
 
-      if (!Configuration.instance.hasConfiguredAccount() || Configuration.instance.getToken() == null) {
-        _logger.info("[DEBUG] Token or configured account check failed after decryption");
-        throw Exception("[DEBUG] Decryption succeeded but account setup failed");
+      if (!Configuration.instance.hasConfiguredAccount() ||
+          Configuration.instance.getToken() == null) {
+        _logger.info(
+            "[DEBUG] Token or configured account check failed after decryption",);
+        throw Exception(
+            "[DEBUG] Decryption succeeded but account setup failed",);
       }
 
       _logger.info("Login successful for ${Configuration.instance.getEmail()}");
@@ -156,16 +174,19 @@ class _LoadingPageState extends State<LoadingPage> {
       await UserService.instance.setEmail(account.username);
       Configuration.instance.resetVolatilePassword();
 
-      final response = await UserService.instance.sendOttForAutomation(account.upToken, purpose: "signup");
+      final response = await UserService.instance
+          .sendOttForAutomation(account.upToken, purpose: "signup");
       if (response == null) {
-        _logger.info("[DEBUG] REGISTRATION FAILED: sendOttForAutomation (signup) returned null");
+        _logger.info(
+            "[DEBUG] REGISTRATION FAILED: sendOttForAutomation (signup) returned null",);
         // await Fluttertoast.showToast(msg: "Registration failed");
         await _showAuthenticationErrorDialog();
         return;
       }
       if (response["token"] == null) {
-        _logger.info("[DEBUG] sendOttForAutomation (register) returned null token");
-      //  await Fluttertoast.showToast(msg: "Registration failed");
+        _logger.info(
+            "[DEBUG] sendOttForAutomation (register) returned null token",);
+        //  await Fluttertoast.showToast(msg: "Registration failed");
         await _showAuthenticationErrorDialog();
         return;
       }
@@ -173,13 +194,16 @@ class _LoadingPageState extends State<LoadingPage> {
       await _saveConfiguration(response);
       _logger.info("Configuration saved for registration");
 
-      final KeyGenResult result = await Configuration.instance.generateKey(account.servicePassword);
+      final KeyGenResult result =
+          await Configuration.instance.generateKey(account.servicePassword);
       await UserService.instance.setAttributes(result);
 
-      if (!Configuration.instance.hasConfiguredAccount() || Configuration.instance.getToken() == null) {
+      if (!Configuration.instance.hasConfiguredAccount() ||
+          Configuration.instance.getToken() == null) {
         _logger.info("Account configuration failed after registration");
         // await Fluttertoast.showToast(msg: "Registration failed");
-        await _handleAutomatedLoginFailure("Account setup incomplete after registration");
+        await _handleAutomatedLoginFailure(
+            "Account setup incomplete after registration",);
         return;
       }
 
@@ -188,7 +212,7 @@ class _LoadingPageState extends State<LoadingPage> {
       await _onLoginSuccess();
     } catch (e, s) {
       _logger.info("[DEBUG] Automated registration failed", e, s);
-     // await Fluttertoast.showToast(msg: "Registration failed");
+      // await Fluttertoast.showToast(msg: "Registration failed");
       await _showAuthenticationErrorDialog();
       return;
     }
@@ -199,9 +223,11 @@ class _LoadingPageState extends State<LoadingPage> {
     if (response == null) {
       final Account? account = widget.accountNotifier?.value;
       if (account != null && account.username.isNotEmpty) {
-        _logger.info("[DEBUG] Saving username to Flutter prefs: ${account.username}");
+        _logger.info(
+            "[DEBUG] Saving username to Flutter prefs: ${account.username}",);
         await Configuration.instance.setUsername(account.username);
-        _logger.info("[DEBUG] Saved username to Flutter prefs: ${account.username}");
+        _logger.info(
+            "[DEBUG] Saved username to Flutter prefs: ${account.username}",);
       }
       return;
     }
@@ -212,35 +238,41 @@ class _LoadingPageState extends State<LoadingPage> {
       return;
     }
 
-    _logger.info("Saving configuration from response with keys: "+responseData.keys.toList().toString());
-    
+    _logger.info("Saving configuration from response with keys: " +
+        responseData.keys.toList().toString(),);
+
     // Save username from account object (only in Flutter prefs, not native)
     final Account? account = widget.accountNotifier?.value;
     if (account != null && account.username.isNotEmpty) {
-      _logger.info("[DEBUG] Saving username to Flutter prefs: ${account.username}");
+      _logger.info(
+          "[DEBUG] Saving username to Flutter prefs: ${account.username}",);
       await Configuration.instance.setUsername(account.username);
-      _logger.info("[DEBUG] Saved username to Flutter prefs: ${account.username}");
+      _logger
+          .info("[DEBUG] Saved username to Flutter prefs: ${account.username}");
     }
-    
+
     if (responseData["id"] != null) {
       await Configuration.instance.setUserID(responseData["id"]);
       _logger.info("Saved user ID: ${responseData["id"]}");
     }
-    
+
     if (responseData["encryptedToken"] != null) {
-      await Configuration.instance.setEncryptedToken(responseData["encryptedToken"]);
+      await Configuration.instance
+          .setEncryptedToken(responseData["encryptedToken"]);
       _logger.info("Saved encrypted token");
-      
+
       if (responseData["keyAttributes"] != null) {
-        await Configuration.instance.setKeyAttributes(KeyAttributes.fromMap(responseData["keyAttributes"]));
+        await Configuration.instance.setKeyAttributes(
+            KeyAttributes.fromMap(responseData["keyAttributes"]),);
         _logger.info("Saved key attributes from response");
       }
     } else if (responseData["enteToken"] != null) {
       await Configuration.instance.setEncryptedToken(responseData["enteToken"]);
       _logger.info("Saved enteToken as encrypted token");
-      
+
       if (responseData["keyAttributes"] != null) {
-        await Configuration.instance.setKeyAttributes(KeyAttributes.fromMap(responseData["keyAttributes"]));
+        await Configuration.instance.setKeyAttributes(
+            KeyAttributes.fromMap(responseData["keyAttributes"]),);
         _logger.info("Saved key attributes from response");
       }
     } else if (responseData["token"] != null) {
@@ -258,8 +290,10 @@ class _LoadingPageState extends State<LoadingPage> {
     await Future(() {});
 
     // Defensive: re-check config before navigating
-    if (!Configuration.instance.hasConfiguredAccount() || Configuration.instance.getToken() == null) {
-      _logger.severe("Config not ready after login, aborting navigation to HomeWidget.");
+    if (!Configuration.instance.hasConfiguredAccount() ||
+        Configuration.instance.getToken() == null) {
+      _logger.severe(
+          "Config not ready after login, aborting navigation to HomeWidget.",);
       widget.onLoginComplete?.call();
       return;
     }
@@ -289,7 +323,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
   Future<void> _showNoInternetDialog() async {
     _logger.info("Showing no internet connectivity dialog");
-    
+
     final choice = await showChoiceActionSheet(
       context,
       title: AppLocalizations.of(context).noInternetConnection,
@@ -316,7 +350,7 @@ class _LoadingPageState extends State<LoadingPage> {
         await _channel.invokeMethod('destroyApp');
       },
     );
-    
+
     // If dialog is dismissed somehow, still perform logout
     if (choice == null) {
       await Configuration.instance.logout(autoLogout: true);
@@ -325,11 +359,12 @@ class _LoadingPageState extends State<LoadingPage> {
 
   Future<void> _showAuthenticationErrorDialog() async {
     _logger.info("[DEBUG] Showing authentication error dialog");
-    
+
     final choice = await showChoiceActionSheet(
       context,
       title: "Something went wrong",
-      body: "An error occurred during authentication. Would you like to continue to the limited gallery?",
+      body:
+          "An error occurred during authentication. Would you like to continue to the limited gallery?",
       firstButtonLabel: AppLocalizations.of(context).limitedGallery,
       secondButtonLabel: AppLocalizations.of(context).exit,
       firstButtonType: ButtonType.primary,
@@ -352,7 +387,7 @@ class _LoadingPageState extends State<LoadingPage> {
         await _channel.invokeMethod('destroyApp');
       },
     );
-    
+
     // If dialog is dismissed somehow, still perform logout
     if (choice == null) {
       await Configuration.instance.logout(autoLogout: true);
@@ -373,8 +408,8 @@ class _LoadingPageState extends State<LoadingPage> {
       body: Center(
         child: _isProcessing
             ? const CircularProgressIndicator(
-          color: Colors.blue,
-        )
+                color: Colors.blue,
+              )
             : const Text("Finished"),
       ),
     );

@@ -192,7 +192,8 @@ class _LoginPageState extends State<LoginPage> {
                                     return WebPage(
                                       AppLocalizations.of(context)
                                           .termsOfServicesTitle,
-                                      "https://unplugged.com/tos",                                    );
+                                      "https://unplugged.com/tos",
+                                    );
                                   },
                                 ),
                               ),
@@ -240,7 +241,7 @@ class _LoginPageState extends State<LoginPage> {
     _email = value.trim();
     _emailIsValid = EmailValidator.validate(_email!);
     if (_emailIsValid) {
-              _emailInputFieldColor = const Color(0xFF475CC7).withOpacity(0.2);
+      _emailInputFieldColor = const Color(0xFF475CC7).withOpacity(0.2);
     } else {
       _emailInputFieldColor = getEnteColorScheme(context).fillFaint;
     }

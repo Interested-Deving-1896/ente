@@ -24,8 +24,6 @@ class _StorageCardWidgetState extends State<StorageCardWidget> {
   int? familyMemberStorageLimit;
   bool showFamilyBreakup = false;
 
-
-
   @override
   Widget build(BuildContext context) {
     final inheritedUserDetails = InheritedUserDetails.of(context);
@@ -61,7 +59,6 @@ class _StorageCardWidgetState extends State<StorageCardWidget> {
                   color: strokeBaseDark,
                 ),
         ),
-
       ],
     );
   }

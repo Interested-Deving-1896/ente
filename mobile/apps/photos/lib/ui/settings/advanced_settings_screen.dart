@@ -86,7 +86,8 @@ class AdvancedSettingsScreen extends StatelessWidget {
                           // ignore: unawaited_futures
                           routeToPage(
                             context,
-                            const GallerySettingsScreen(fromGalleryLayoutSettingsCTA: false),
+                            const GallerySettingsScreen(
+                                fromGalleryLayoutSettingsCTA: false,),
                           );
                         },
                       ),

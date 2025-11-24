@@ -24,8 +24,7 @@ class PushService {
     try {
       if (Configuration.instance.hasConfiguredAccount()) {
       } else {
-        Bus.instance.on<SignedInEvent>().listen((_) async {
-        });
+        Bus.instance.on<SignedInEvent>().listen((_) async {});
       }
     } catch (e, s) {
       _logger.severe("Could not configure push token", e, s);

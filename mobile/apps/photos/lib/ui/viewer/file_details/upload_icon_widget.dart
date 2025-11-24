@@ -122,14 +122,17 @@ class _UpdateIconWidgetState extends State<UploadIconWidget> {
                 color: Colors.white,
               ),
               onPressed: () async {
-                _logger.info('[UPLOAD_SYNC] Upload button pressed for file: ${widget.file.tag}');
+                _logger.info(
+                    '[UPLOAD_SYNC] Upload button pressed for file: ${widget.file.tag}',);
                 if (isIgnored) {
-                  _logger.info('[UPLOAD_SYNC] File was ignored, removing ignored mapping');
+                  _logger.info(
+                      '[UPLOAD_SYNC] File was ignored, removing ignored mapping',);
                   await IgnoredFilesService.instance
                       .removeIgnoredMappings([widget.file]);
                 }
                 if (widget.file.collectionID == null) {
-                  _logger.info('[UPLOAD_SYNC] File has no collectionID, assigning to uncategorized');
+                  _logger.info(
+                      '[UPLOAD_SYNC] File has no collectionID, assigning to uncategorized',);
                   widget.file.collectionID = (await CollectionsService.instance
                           .getUncategorizedCollection())
                       .id;

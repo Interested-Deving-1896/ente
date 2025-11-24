@@ -211,7 +211,8 @@ class FileUploader {
     );
     final FileUploadItem item = _queue[localID]!;
     if (item.collectionID == collectionID) {
-      _logger.info('[UPLOAD_SYNC] File already in queue for this collection: ${file.toString()}');
+      _logger.info(
+          '[UPLOAD_SYNC] File already in queue for this collection: ${file.toString()}',);
       _totalCountInUploadSession--;
       _logger.internalInfo(
         "[UPLOAD-DEBUG] Same collectionID ($collectionID) - returning existing future",
@@ -424,14 +425,16 @@ class FileUploader {
       _logger.internalInfo(
         "[UPLOAD-DEBUG] _tryToUpload() completed successfully for ${file.title}",
       );
-      _logger.info('[UPLOAD_SYNC] Upload completed for file: ${file.toString()}');
+      _logger
+          .info('[UPLOAD_SYNC] Upload completed for file: ${file.toString()}');
       _queue.remove(localID)!.completer.complete(uploadedFile);
       _allBackups[localID] =
           _allBackups[localID]!.copyWith(status: BackupItemStatus.uploaded);
       Bus.instance.fire(BackupUpdatedEvent(_allBackups));
       return uploadedFile;
     } catch (e) {
-      _logger.severe('[UPLOAD_SYNC] Upload failed for file: ${file.toString()}, error: ${e.toString()}');
+      _logger.severe(
+          '[UPLOAD_SYNC] Upload failed for file: ${file.toString()}, error: ${e.toString()}',);
       if (e is LockAlreadyAcquiredError) {
         _queue[localID]!.status = UploadStatus.inBackground;
         _allBackups[localID] = _allBackups[localID]!
@@ -446,7 +449,8 @@ class FileUploader {
         return null;
       }
     } finally {
-      _logger.info('[UPLOAD_SYNC] _encryptAndUploadFileToCollection finally for file: ${file.toString()}');
+      _logger.info(
+          '[UPLOAD_SYNC] _encryptAndUploadFileToCollection finally for file: ${file.toString()}',);
       _uploadCounter--;
       if (file.fileType == FileType.video) {
         _videoUploadCounter--;
@@ -588,7 +592,8 @@ class FileUploader {
     int collectionID,
     bool forcedUpload,
   ) async {
-    _logger.info('[UPLOAD_SYNC] _tryToUpload called for file: ${file.toString()}, collectionID: ${collectionID}, forced: ${forcedUpload}');
+    _logger.info(
+        '[UPLOAD_SYNC] _tryToUpload called for file: ${file.toString()}, collectionID: ${collectionID}, forced: ${forcedUpload}',);
     await checkNetworkForUpload(isForceUpload: forcedUpload);
     if (!forcedUpload) {
       final fileOnDisk = await FilesDB.instance.getFile(file.generatedID!);
@@ -597,7 +602,8 @@ class FileUploader {
           (fileOnDisk.updationTime ?? -1) != -1 &&
           (fileOnDisk.collectionID ?? -1) == collectionID;
       if (wasAlreadyUploaded) {
-        _logger.info('[UPLOAD_SYNC] File was already uploaded: ${fileOnDisk.toString()}');
+        _logger.info(
+            '[UPLOAD_SYNC] File was already uploaded: ${fileOnDisk.toString()}',);
         return fileOnDisk;
       }
     }
@@ -711,7 +717,8 @@ class FileUploader {
         );
         final isMappedToExistingUpload = result.item1;
         if (isMappedToExistingUpload) {
-          _logger.info('[UPLOAD_SYNC] File mapped to existing upload: ${file.toString()}');
+          _logger.info(
+              '[UPLOAD_SYNC] File mapped to existing upload: ${file.toString()}',);
           // return the mapped file
           return result.item2;
         }
@@ -955,7 +962,8 @@ class FileUploader {
       Bus.instance.fire(FileUploadedEvent(remoteFile));
       return remoteFile;
     } catch (e, s) {
-      _logger.severe('[UPLOAD_SYNC] _tryToUpload failed for file: ${file.toString()}, error: ${e.toString()}, stack: ${s.toString()}');
+      _logger.severe(
+          '[UPLOAD_SYNC] _tryToUpload failed for file: ${file.toString()}, error: ${e.toString()}, stack: ${s.toString()}',);
       if (!(e is NoActiveSubscriptionError ||
           e is StorageLimitExceededError ||
           e is WiFiUnavailableError ||
@@ -980,7 +988,8 @@ class FileUploader {
       }
       rethrow;
     } finally {
-      _logger.info('[UPLOAD_SYNC] _tryToUpload finally for file: ${file.toString()}');
+      _logger.info(
+          '[UPLOAD_SYNC] _tryToUpload finally for file: ${file.toString()}',);
       await _onUploadDone(
         mediaUploadData,
         uploadCompleted,
@@ -1292,7 +1301,8 @@ class FileUploader {
     MetadataRequest? pubMetadata,
     int attempt = 1,
   }) async {
-    _logger.info('[UPLOAD_SYNC] _uploadFile called for file: ${file.toString()}, collectionID: ${collectionID}, attempt: ${attempt}');
+    _logger.info(
+        '[UPLOAD_SYNC] _uploadFile called for file: ${file.toString()}, collectionID: ${collectionID}, attempt: ${attempt}',);
     final request = {
       "collectionID": collectionID,
       "encryptedKey": encryptedKey,
@@ -1315,18 +1325,22 @@ class FileUploader {
     if (pubMetadata != null) {
       request["pubMagicMetadata"] = pubMetadata;
     }
-    _logger.info('[UPLOAD_SYNC] _uploadFile request: ' + jsonEncode({
-      'collectionID': collectionID,
-      'file': fileObjectKey,
-      'fileSize': fileSize,
-      'thumbnail': thumbnailObjectKey,
-      'thumbnailSize': thumbnailSize,
-      'metadata': encryptedMetadata,
-      'pubMetadata': pubMetadata?.toString(),
-    }),);
+    _logger.info(
+      '[UPLOAD_SYNC] _uploadFile request: ' +
+          jsonEncode({
+            'collectionID': collectionID,
+            'file': fileObjectKey,
+            'fileSize': fileSize,
+            'thumbnail': thumbnailObjectKey,
+            'thumbnailSize': thumbnailSize,
+            'metadata': encryptedMetadata,
+            'pubMetadata': pubMetadata?.toString(),
+          }),
+    );
     try {
       final response = await _enteDio.post("/files", data: request);
-      _logger.info('[UPLOAD_SYNC] _uploadFile response: ' + response.data.toString());
+      _logger.info(
+          '[UPLOAD_SYNC] _uploadFile response: ' + response.data.toString(),);
       final data = response.data;
       file.uploadedFileID = data["id"];
       file.collectionID = collectionID;
@@ -1339,7 +1353,8 @@ class FileUploader {
       file.metadataDecryptionHeader = metadataDecryptionHeader;
       return file;
     } on DioException catch (e) {
-      _logger.severe('[UPLOAD_SYNC] _uploadFile DioException for file: ${file.toString()}, error: ${e.toString()}, response: ${e.response?.data?.toString()}');
+      _logger.severe(
+          '[UPLOAD_SYNC] _uploadFile DioException for file: ${file.toString()}, error: ${e.toString()}, response: ${e.response?.data?.toString()}',);
       final int statusCode = e.response?.statusCode ?? -1;
       if (statusCode == 413) {
         throw FileTooLargeForPlanError();

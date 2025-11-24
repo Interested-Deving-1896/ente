@@ -45,7 +45,8 @@ class IgnoredFilesService {
     if (id != null && id.isNotEmpty) {
       final isIgnored = idToReasonMap.containsKey(id);
       if (isIgnored) {
-        _logger.info('[UPLOAD_SYNC] File ${file.tag} is ignored due to reason: ${idToReasonMap[id]}');
+        _logger.info(
+            '[UPLOAD_SYNC] File ${file.tag} is ignored due to reason: ${idToReasonMap[id]}',);
       }
       return isIgnored;
     }

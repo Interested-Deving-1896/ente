@@ -71,7 +71,8 @@ class Configuration {
   static const anonymousUserIDKey = "anonymous_user_id";
   static const endPointKey = "endpoint";
   static final _logger = Logger("Configuration");
-  static const MethodChannel _loginChannel = MethodChannel('ente_login_channel');
+  static const MethodChannel _loginChannel =
+      MethodChannel('ente_login_channel');
 
   String? _cachedToken;
   late String _documentsDirectory;
@@ -180,7 +181,8 @@ class Configuration {
           }
         }
         await _preferences.setInt(lastTempFolderClearTimeKey, currentTime);
-        _logger.info("[DEBUG] Cleared temp folder except $skippedTempUploadFiles upload files",
+        _logger.info(
+          "[DEBUG] Cleared temp folder except $skippedTempUploadFiles upload files",
         );
       } else {
         _logger.info("Skipping temp folder clear");
@@ -529,7 +531,8 @@ class Configuration {
   Future<void> setToken(String token) async {
     _cachedToken = token;
     await _preferences.setString(tokenKey, token);
-    _logger.info('[DEBUG] setToken: token saved: ${token.substring(0, token.length > 8 ? 8 : token.length)}...');
+    _logger.info(
+        '[DEBUG] setToken: token saved: ${token.substring(0, token.length > 8 ? 8 : token.length)}...',);
     Bus.instance.fire(SignedInEvent());
   }
 

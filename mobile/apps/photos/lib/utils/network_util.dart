@@ -21,9 +21,10 @@ Future<bool> canUseHighBandwidth() async {
 Future<bool> hasInternetConnectivity() async {
   final List<ConnectivityResult> connections =
       await (Connectivity().checkConnectivity());
-  
+
   // Check if any connection type is available (wifi, mobile, ethernet, etc.)
-  return connections.isNotEmpty && 
-         connections.any((connection) => 
-           connection != ConnectivityResult.none,);
+  return connections.isNotEmpty &&
+      connections.any(
+        (connection) => connection != ConnectivityResult.none,
+      );
 }

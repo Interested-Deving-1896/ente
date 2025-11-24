@@ -536,7 +536,8 @@ class _FileSelectionActionsWidgetState
   }
 
   Future<void> _addToAlbum() async {
-    _logger.info('[UPLOAD_SYNC] _addToAlbum called with ${widget.selectedFiles.files.length} selected files');
+    _logger.info(
+        '[UPLOAD_SYNC] _addToAlbum called with ${widget.selectedFiles.files.length} selected files',);
     showCollectionActionSheet(context, selectedFiles: widget.selectedFiles);
   }
 

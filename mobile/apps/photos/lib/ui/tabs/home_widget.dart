@@ -99,7 +99,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   );
 
   static const String _loginFlowActiveKey = "login_flow_active";
-  static const MethodChannel _logoutChannel = MethodChannel('ente_logout_channel');
+  static const MethodChannel _logoutChannel =
+      MethodChannel('ente_logout_channel');
 
   final _logger = Logger("HomeWidgetState");
   final _selectedAlbums = SelectedAlbums();
@@ -181,7 +182,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         Bus.instance.on<TriggerLogoutEvent>().listen((event) async {
       await _autoLogoutAlert();
     });
-    _loggedOutEvent = Bus.instance.on<UserLoggedOutEvent>().listen((event) async {
+    _loggedOutEvent =
+        Bus.instance.on<UserLoggedOutEvent>().listen((event) async {
       _logger.info('[DEBUG] logged out, selectTab index to 0');
       _selectedTabIndex = 0;
 
@@ -277,15 +279,18 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         _logger.info('[DEBUG] Received logout request from native');
         await Configuration.instance.logout(autoLogout: true);
         // Notify native that logout is complete
-        await const MethodChannel('ente_logout_complete_channel').invokeMethod('logoutComplete');
+        await const MethodChannel('ente_logout_complete_channel')
+            .invokeMethod('logoutComplete');
       }
     });
 
     // Add MethodChannel handler for app resume (when returning from gallery app)
-    const MethodChannel _appResumeChannel = MethodChannel('com.unplugged.photos/account');
+    const MethodChannel _appResumeChannel =
+        MethodChannel('com.unplugged.photos/account');
     _appResumeChannel.setMethodCallHandler((call) async {
       if (call.method == 'onAppResumed') {
-        _logger.info('[DEBUG] App resumed - user returned from gallery app or other activity');
+        _logger.info(
+            '[DEBUG] App resumed - user returned from gallery app or other activity',);
 
         try {
           _logger.info('[DEBUG] App resume handled successfully');
@@ -321,10 +326,12 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.detached || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.detached ||
+        state == AppLifecycleState.inactive) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_loginFlowActiveKey, false);
-      _logger.info('Cleared _loginFlowActiveKey due to app lifecycle state: $state');
+      _logger.info(
+          'Cleared _loginFlowActiveKey due to app lifecycle state: $state',);
     }
   }
 
@@ -448,7 +455,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                 }),
               );
             } catch (e, s) {
-              _logger.info("[DEBUG] Failed to decrypt password for album", e, s);
+              _logger.info(
+                  "[DEBUG] Failed to decrypt password for album", e, s,);
               await showGenericErrorDialog(context: context, error: e);
               return;
             }
@@ -674,7 +682,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         );
       }
     } catch (e) {
-      _logger.info("[DEBUG] Error while getting initial public album deep link: $e");
+      _logger.info(
+          "[DEBUG] Error while getting initial public album deep link: $e",);
     }
 
     _publicAlbumLinkSubscription = appLinks.uriLinkStream.listen(
@@ -782,7 +791,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
             _logger.info("[DEBUG] onLoginComplete fired");
             final username = Configuration.instance.getUsername();
             _logger.info("[DEBUG] Username in onLoginComplete: $username");
-            _logger.info("[DEBUG] hasConfiguredAccount: "+Configuration.instance.hasConfiguredAccount().toString());
+            _logger.info("[DEBUG] hasConfiguredAccount: " +
+                Configuration.instance.hasConfiguredAccount().toString(),);
             // Username-to-native logic removed; now handled in LoadingPage
             _isLoadingPageActive = false;
             _shouldShowLoadingPage = false;
@@ -834,7 +844,6 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       children: [
         Builder(
           builder: (context) {
-
             return ValueListenableBuilder(
               valueListenable: _swipeToSelectInProgressNotifier,
               builder: (context, inProgress, child) {

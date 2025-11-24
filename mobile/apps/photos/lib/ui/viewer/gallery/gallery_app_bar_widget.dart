@@ -411,7 +411,6 @@ class _GalleryAppBarWidgetState extends State<GalleryAppBarWidget> {
       );
     }
 
-
     if (widget.collection != null && castService.isSupported) {
       actions.add(
         Tooltip(
@@ -641,8 +640,8 @@ class _GalleryAppBarWidgetState extends State<GalleryAppBarWidget> {
             await onCleanUncategorizedClick(context);
           } else if (value == AlbumPopupAction.downloadAlbum) {
             await _downloadPublicAlbumToGallery(widget.files!);
-          // } else if (value == AlbumPopupAction.editLocation) {
-          //   editLocation();
+            // } else if (value == AlbumPopupAction.editLocation) {
+            //   editLocation();
           } else if (value == AlbumPopupAction.deleteLocation) {
             await deleteLocation();
           } else if (value == AlbumPopupAction.galleryGuestView) {

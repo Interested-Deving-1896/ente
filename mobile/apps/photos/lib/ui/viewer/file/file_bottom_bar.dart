@@ -129,7 +129,8 @@ class FileBottomBarState extends State<FileBottomBar> {
                 onPressed: () async {
                   final success =
                       await GalleryEditService.openGalleryAppForEdit(
-                          widget.file,);
+                    widget.file,
+                  );
                   if (!success) {
                     // Fallback to original edit behavior if gallery app fails to open
                     widget.onEditRequested(widget.file);

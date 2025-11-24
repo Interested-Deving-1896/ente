@@ -126,7 +126,8 @@ class SyncService {
       _logger.info('[UPLOAD_SYNC] Logging user out due to unauthorized error');
       Bus.instance.fire(TriggerLogoutEvent());
     } on NoMediaLocationAccessError {
-      _logger.severe('[UPLOAD_SYNC] Not uploading due to no media location access');
+      _logger.severe(
+          '[UPLOAD_SYNC] Not uploading due to no media location access',);
       Bus.instance.fire(
         SyncStatusUpdate(
           SyncStatus.error,
@@ -208,7 +209,8 @@ class SyncService {
     _logger.info('[UPLOAD_SYNC] Local sync completed');
 
     if (_localSyncService.hasCompletedFirstImport()) {
-      _logger.info('[UPLOAD_SYNC] First import completed, starting remote sync');
+      _logger
+          .info('[UPLOAD_SYNC] First import completed, starting remote sync');
       await _remoteSyncService.sync();
       _logger.info('[UPLOAD_SYNC] Remote sync completed');
 
