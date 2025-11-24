@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/ente-io/museum/pkg/repo/public"
 	"strings"
+
+	"github.com/ente-io/museum/pkg/repo/public"
 
 	"github.com/ente-io/museum/ente"
 	"github.com/ente-io/museum/pkg/utils/time"
@@ -162,7 +163,12 @@ func (t *TrashRepository) TrashFiles(fileIDs []int64, userID int64, trash ente.T
 	if err == nil {
 		removeLinkErr := t.FileLinkRepo.DisableLinkForFiles(ctx, fileIDs)
 		if removeLinkErr != nil {
-			return stacktrace.Propagate(removeLinkErr, "failed to disable file links for files being trashed")
+			logrus.WithFields(
+				logrus.Fields{
+					"fileIDs": fileIDs,
+					"userID":  userID,
+				},
+			).Warning("failed to disable file links for files being trashed")
 		}
 	}
 	return stacktrace.Propagate(err, "")

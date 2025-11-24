@@ -33,6 +33,7 @@ type UserHandler struct {
 
 // SendOTT generates and sends an OTT to the provided email address
 func (h *UserHandler) SendOTT(c *gin.Context) {
+
 	var request ente.SendOTTRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		handler.Error(c, stacktrace.Propagate(err, ""))
@@ -573,6 +574,7 @@ func (h *UserHandler) GetSRPAttributes(c *gin.Context) {
 	var username = request.Email
 	var err error
 	_, username, err = h.UserUtils.GetUserID(username)
+	logrus.Infof("Getting SRP attributes from USER_ID for user %s", username)
 	response, err := h.UserController.GetSRPAttributes(c, username)
 	if err != nil {
 		handler.Error(c, stacktrace.Propagate(err, ""))

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ente-io/museum/pkg/controller"
+	"github.com/ente-io/museum/pkg/middleware"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
@@ -27,14 +28,22 @@ type UPUserHandler struct {
 // SendOTT validates the JWT token and then calls the original SendOTT method
 func (h *UPUserHandler) SendOTT(c *gin.Context) {
 
-	// Validate JWT token
-	authToken := c.GetHeader("Authorization")
-
 	var request ente.SendOTTRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		handler.Error(c, stacktrace.Propagate(err, ""))
 		return
 	}
+
+	if c.Request.Header.Get(middleware.AuthUserID) != "0" && request.Purpose == ente.SignUpOTTPurpose {
+		log.Warningf("SendOTT Trying to send OTT for logged userID %s, email %s",
+			c.Request.Header.Get(middleware.AuthUserID), c.Request.Header.Get(middleware.UpUsernameHeader))
+		handler.Error(c, stacktrace.Propagate(ente.ErrUserAlreadyRegistered, "user has already completed sign up process"))
+		return
+	}
+	// Validate JWT token
+	authToken := c.GetHeader("Authorization")
+
+	log.Infof("SendOTT, Sending OTT for %s", request.Purpose)
 	preferredUsername, _ := h.JWTValidator.GetPreferredUsername(authToken)
 	username, isError := buildEmailFromUsername(c, preferredUsername)
 	if isError {
@@ -42,7 +51,7 @@ func (h *UPUserHandler) SendOTT(c *gin.Context) {
 	}
 
 	if request.Purpose == ente.SignUpOTTPurpose || request.Purpose == ente.LoginOTTPurpose {
-		err := h.UserController.SendEmailOTT(c, username, request.Purpose)
+		err := h.UserController.SendEmailOTT(c, username, request.Purpose, request.Mobile)
 		if err != nil {
 			handler.Error(c, stacktrace.Propagate(err, ""))
 			return
