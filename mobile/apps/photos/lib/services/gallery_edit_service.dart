@@ -8,7 +8,7 @@ class GalleryEditService {
   static final _logger = Logger('GalleryEditService');
 
   /// Opens the external app for viewing a specific photo
-  /// 
+  ///
   /// [file] - The photo file to open
   /// Returns true if successful, false otherwise
   static Future<bool> openGalleryAppForEdit(EnteFile file) async {
@@ -20,12 +20,13 @@ class GalleryEditService {
       }
 
       final photoPath = ioFile.absolute.path;
-      
+
       // Call the native method channel
-      final result = await _channel.invokeMethod<bool>('openGalleryAppForEdit', {
+      final result =
+          await _channel.invokeMethod<bool>('openGalleryAppForEdit', {
         'photoPath': photoPath,
       });
-      
+
       return result ?? false;
     } catch (e, stackTrace) {
       _logger.severe('Failed to open external app', e, stackTrace);

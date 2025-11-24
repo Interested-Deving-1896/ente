@@ -186,6 +186,7 @@
   "@allowAddingPhotos": {
     "description": "Switch button to enable uploading photos to a public link"
   },
+  "allowJoiningAlbum": "Permitir unirse al álbum",
   "allowAddPhotosDescription": "Permitir a las personas con el enlace añadir fotos al álbum compartido.",
   "passwordLock": "Bloqueo con contraseña",
   "canNotOpenTitle": "No es posible abrir este álbum",
@@ -198,6 +199,11 @@
   "@noDeviceLimit": {
     "description": "Text to indicate that there is limit on number of devices"
   },
+  "albumLayout": "Diseño del álbum",
+  "layoutGrouped": "Agrupado",
+  "layoutContinuous": "Continuo",
+  "layoutTrip": "Viaje",
+  "preview": "Vista previa",
   "linkExpiry": "Enlace vence",
   "linkExpired": "Vencido",
   "linkEnabled": "Habilitado",
@@ -237,7 +243,9 @@
   "shareWithNonenteUsers": "Compartir con usuarios fuera de Ente",
   "createPublicLink": "Crear enlace público",
   "sendLink": "Enviar enlace",
+  "sendQrCode": "Enviar código QR",
   "copyLink": "Copiar enlace",
+  "copyEmbedHtml": "Copiar HTML incorporado",
   "linkHasExpired": "El enlace ha caducado",
   "publicLinkEnabled": "Enlace público habilitado",
   "shareALink": "Compartir un enlace",
@@ -1169,8 +1177,8 @@
     "description": "Label for the map view"
   },
   "maps": "Mapas",
+  "mapsPrivacyNotice": "Las coordenadas aproximadas se enviarán a terceras partes conscientes de la privacidad como OpenStreetMap para mostrar el mapa y la ubicación.",
   "enableMaps": "Habilitar mapas",
-  "enableMapsDesc": "Esto mostrará tus fotos en el mapa mundial.\n\nEste mapa está gestionado por Open Street Map, y la ubicación exacta de tus fotos nunca se comparte.\n\nPuedes deshabilitar esta función en cualquier momento en Ajustes.",
   "quickLinks": "Acceso rápido",
   "selectItemsToAdd": "Selecciona elementos para agregar",
   "addSelected": "Agregar selección",
@@ -1776,14 +1784,6 @@
   "same": "Igual",
   "different": "Diferente",
   "sameperson": "la misma persona?",
-  "cLTitle1": "Editor avanzado de imágenes",
-  "cLDesc1": "Estamos lanzando un nuevo y avanzado editor de imágenes que añade más marcos de recorte, preajustes de filtros para edición rápida, opciones de ajuste finas incluyendo saturación, contraste, brillo, temperatura y mucho más. El nuevo editor también incluye la capacidad de dibujar en tus fotos y añadir emojis como pegatinas.",
-  "cLTitle2": "Álbumes Inteligentes",
-  "cLDesc2": "Ahora puedes añadir automáticamente fotos de personas seleccionadas a cualquier álbum. Solo tienes que ir al álbum, y seleccionar \"Agregar personas automáticamente\" del menú desbordante. Si se utiliza junto con el álbum compartido, puedes compartir fotos con cero clics.",
-  "cLTitle3": "Galería mejorada",
-  "cLDesc3": "Hemos añadido la capacidad de agrupar tu galería por semanas, meses y años. Ahora puedes personalizar tu galería exactamente como quieras con estas nuevas opciones de agrupación, junto con rejillas personalizadas",
-  "cLTitle4": "Desplazamiento más rápido",
-  "cLDesc4": "Junto con un montón de mejoras bajo el capó para mejorar la experiencia del desplazamiento de la galería también hemos rediseñado la barra de desplazamiento para mostrar los marcadores, permitiéndote saltar rápidamente a través de la línea de tiempo.",
   "indexingPausedStatusDescription": "La indexación está pausada. Se reanudará automáticamente cuando el dispositivo esté listo. El dispositivo se considera listo cuando su nivel de batería, la salud de la batería y temperatura están en un rango saludable.",
   "thisWeek": "Esta semana",
   "lastWeek": "Semana pasada",
@@ -1808,7 +1808,6 @@
   "automaticallyAnalyzeAndSplitGrouping": "Analizaremos automáticamente la agrupación para determinar si hay varias personas presentes, y separarlas de nuevo. Esto puede tardar unos segundos.",
   "layout": "Disposición",
   "day": "Día",
-  "peopleAutoAddDesc": "Selecciona las personas que quieres añadir automáticamente al álbum",
   "undo": "Deshacer",
   "redo": "Rehacer",
   "filter": "Filtro",
@@ -1925,6 +1924,11 @@
   },
   "size": "Tamaño",
   "similarity": "Similitud",
+  "analyzingPhotosLocally": "Analizando tus fotos localmente...",
+  "lookingForVisualSimilarities": "Buscando similitudes visuales...",
+  "comparingImageDetails": "Comparando detalles de imágenes...",
+  "findingSimilarImages": "Buscando imágenes similares...",
+  "almostDone": "Ya casi terminamos...",
   "processingLocally": "Procesando localmente",
   "useMLToFindSimilarImages": "Revisar y eliminar imágenes que se parecen entre sí.",
   "all": "Todas",
@@ -1933,5 +1937,23 @@
   "nothingHereTryAnotherFilter": "Nada aquí, ¡prueba con otro filtro! 👀",
   "related": "Relacionado",
   "hoorayyyy": "¡Hurraaaa!",
-  "nothingToTidyUpHere": "Nada que limpiar aquí"
+  "nothingToTidyUpHere": "Nada que limpiar aquí",
+  "deletingDash": "Eliminando - ",
+  "cLTitle1": "Vista de mapa de tus viajes",
+  "cLDesc1": "Elige entre diseños por grupo, continuos, o de viaje (basados en el mapa) al compartir álbumes. ¡Ente se encarga del alojamiento!",
+  "cLTitle2": "Álbumes incorporados",
+  "cLDesc2": "Incorpora tus álbumes en tu propio sitio web, blog o portafolio de fotografía. ¡Ente se encarga del alojamiento!",
+  "cLTitle3": "Álbumes compartidos en widgets",
+  "cLDesc3": "Los widgets de pantalla de inicio ahora soportan álbumes que han sido compartidos contigo.",
+  "cLTitle4": "La calidad de vida gana",
+  "cLTitle5": "Mejoras al compartir",
+  "cLDesc5": "Comparte enlaces públicos usando un código QR. Personaliza la capacidad de unirse a álbumes a partir de enlaces que compartas.",
+  "closeBy": "Cerrar",
+  "@closeBy": {
+    "description": "Appears in the similar images page, to indicate that the images are close in terms of appearance"
+  },
+  "peopleAutoAddDesc": "Añadir automáticamente fotos de las personas seleccionadas a este álbum",
+  "@peopleAutoAddDesc": {
+    "description": "The message the copy should convey is that photos or videos containing the selected people's faces will be automatically added to this album"
+  }
 }

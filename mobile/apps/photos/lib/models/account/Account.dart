@@ -1,4 +1,3 @@
-
 class Account {
   final String servicePassword;
   final String upToken;

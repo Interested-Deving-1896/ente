@@ -27,6 +27,7 @@ class FileBottomBar extends StatefulWidget {
   final bool showOnlyInfoButton;
   final int? userID;
   final ValueNotifier<bool> enableFullScreenNotifier;
+  final bool isLocalOnlyContext;
 
   const FileBottomBar(
     this.file,
@@ -35,6 +36,7 @@ class FileBottomBar extends StatefulWidget {
     required this.onFileRemoved,
     required this.enableFullScreenNotifier,
     this.userID,
+    this.isLocalOnlyContext = false,
     super.key,
   });
 
@@ -127,7 +129,8 @@ class FileBottomBarState extends State<FileBottomBar> {
                 onPressed: () async {
                   final success =
                       await GalleryEditService.openGalleryAppForEdit(
-                          widget.file,);
+                    widget.file,
+                  );
                   if (!success) {
                     // Fallback to original edit behavior if gallery app fails to open
                     widget.onEditRequested(widget.file);
@@ -227,6 +230,7 @@ class FileBottomBarState extends State<FileBottomBar> {
       context,
       file,
       onFileRemoved: widget.onFileRemoved,
+      isLocalOnlyContext: widget.isLocalOnlyContext,
     );
   }
 

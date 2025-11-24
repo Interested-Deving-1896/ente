@@ -131,7 +131,7 @@ enum ButtonType {
       return colorScheme.warning500;
     }
     if (this == ButtonType.text) {
-      return colorScheme.primary500;  // Blue text color
+      return colorScheme.primary500; // Blue text color
     }
     //fallback
     return colorScheme.strokeBase;
@@ -176,7 +176,8 @@ enum ButtonType {
       return textTheme.bodyBold.copyWith(color: warning500);
     }
     if (this == ButtonType.text) {
-      return textTheme.bodyBold.copyWith(color: const Color(0xFF475CC7));  // Blue text color
+      return textTheme.bodyBold
+          .copyWith(color: const Color(0xFF475CC7)); // Blue text color
     }
     //fallback
     return textTheme.bodyBold;

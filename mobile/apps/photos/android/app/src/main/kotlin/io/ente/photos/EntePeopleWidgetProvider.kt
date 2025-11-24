@@ -178,7 +178,7 @@ class EntePeopleWidgetProvider : HomeWidgetProvider() {
                                                         val drawable =
                                                                 ContextCompat.getDrawable(
                                                                         context,
-                                                                        R.drawable.ic_people_widget
+                                                                        R.drawable.background
                                                                 )
                                                         val bitmap =
                                                                 (drawable as BitmapDrawable).bitmap

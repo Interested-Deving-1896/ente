@@ -122,7 +122,7 @@ class _AlbumsWidgetSettingsState extends State<AlbumsWidgetSettings> {
               flexibleSpaceTitle: TitleBarTitleWidget(
                 title: AppLocalizations.of(context).albums,
               ),
-              expandedHeight: MediaQuery.textScalerOf(context).scale(120),
+              expandedHeight: MediaQuery.textScalerOf(context).scale(136),
               flexibleSpaceCaption: hasInstalledAny
                   ? AppLocalizations.of(context).albumsWidgetDesc
                   : context.l10n.addAlbumWidgetPrompt,
@@ -149,18 +149,18 @@ class _AlbumsWidgetSettingsState extends State<AlbumsWidgetSettings> {
                       SizedBox(
                         height: MediaQuery.sizeOf(context).height * 0.5 - 200,
                       ),
-                      Image.asset(
-                        "assets/albums-widget-static.png",
-                        height: 160,
-                      ),
+                      // Image.asset(
+                      //   "assets/albums-widget-static.png",
+                      //   height: 160,
+                      // ),
                     ],
                   ),
                 ),
               )
             else
               FutureBuilder<List<Collection>>(
-                future:
-                    CollectionsService.instance.getCollectionForOnEnteSection(),
+                future: CollectionsService.instance
+                    .getCollectionForWidgetSelection(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final data = snapshot.data!;

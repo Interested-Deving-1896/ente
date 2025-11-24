@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import "package:photos/app.dart";
 import "package:photos/generated/l10n.dart";

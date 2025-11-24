@@ -8,6 +8,9 @@ import "package:flutter/services.dart";
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:photos/core/cache/image_cache.dart';
+import 'package:photos/core/cache/thumbnail_in_memory_cache.dart';
+import 'package:photos/core/cache/video_cache_manager.dart';
 import 'package:photos/core/constants.dart';
 import 'package:photos/core/event_bus.dart';
 import 'package:photos/db/collections_db.dart';
@@ -22,6 +25,7 @@ import 'package:photos/events/user_logged_out_event.dart';
 import 'package:photos/models/api/user/key_attributes.dart';
 import 'package:photos/models/api/user/key_gen_result.dart';
 import 'package:photos/models/api/user/private_key_attributes.dart';
+import 'package:photos/service_locator.dart';
 import 'package:photos/services/collections_service.dart';
 import 'package:photos/services/favorites_service.dart';
 import "package:photos/services/home_widget_service.dart";
@@ -67,7 +71,8 @@ class Configuration {
   static const anonymousUserIDKey = "anonymous_user_id";
   static const endPointKey = "endpoint";
   static final _logger = Logger("Configuration");
-  static const MethodChannel _loginChannel = MethodChannel('ente_login_channel');
+  static const MethodChannel _loginChannel =
+      MethodChannel('ente_login_channel');
 
   String? _cachedToken;
   late String _documentsDirectory;
@@ -105,13 +110,25 @@ class Configuration {
           _documentsDirectory + "/ente-shared-media";
       Directory(_sharedDocumentsMediaDirectory).createSync(recursive: true);
       if (!_preferences.containsKey(tokenKey)) {
+        _logger.info(
+          "(for debugging) Token not found, deleting all secure storage data",
+        );
         await _secureStorage.deleteAll();
       } else {
+        _logger.info(
+          "(for debugging) Token found, loading secure storage data",
+        );
         _key = await _secureStorage.read(
           key: keyKey,
         );
+        _logger.info(
+          "(for debugging) Key loaded from secure storage, is null: ${_key == null}",
+        );
         _secretKey = await _secureStorage.read(
           key: secretKeyKey,
+        );
+        _logger.info(
+          "(for debugging) Secret Key loaded from secure storage, is null: ${_secretKey == null}",
         );
         if (_key == null) {
           await logout(autoLogout: true);
@@ -164,7 +181,8 @@ class Configuration {
           }
         }
         await _preferences.setInt(lastTempFolderClearTimeKey, currentTime);
-        _logger.info("[DEBUG] Cleared temp folder except $skippedTempUploadFiles upload files",
+        _logger.info(
+          "[DEBUG] Cleared temp folder except $skippedTempUploadFiles upload files",
         );
       } else {
         _logger.info("Skipping temp folder clear");
@@ -175,6 +193,7 @@ class Configuration {
   }
 
   Future<void> logout({bool autoLogout = false}) async {
+    _logger.info("Logging out, autoLogout: $autoLogout");
     if (!autoLogout) {
       if (SyncService.instance.isSyncInProgress()) {
         SyncService.instance.stopSync();
@@ -187,29 +206,62 @@ class Configuration {
         }
       }
     }
+
+    // Clear preferences and secure storage
     await _preferences.clear();
     await _secureStorage.deleteAll();
     _key = null;
     _cachedToken = null;
     _secretKey = null;
+    _volatilePassword = null;
+
+    // Clear all database tables
     await FilesDB.instance.clearTable();
     await CollectionsDB.instance.clearTable();
     await MemoriesDB.instance.clearTable();
     await MLDataDB.instance.clearTable();
-    await SimilarImagesService.instance.clearCache();
-
     await UploadLocksDB.instance.clearTable();
-    await IgnoredFilesService.instance.reset();
     await TrashDB.instance.clearTable();
+
+    // Clear all in-memory caches
+    ThumbnailInMemoryLruCache.clearAll();
+    FileLruCache.clearAll();
+
+    // Clear video cache
+    try {
+      await VideoCacheManager.instance.emptyCache();
+    } catch (e) {
+      _logger.warning("Failed to clear video cache", e);
+    }
+
+    // Clear all service caches
+    await SimilarImagesService.instance.clearCache();
+    await IgnoredFilesService.instance.reset();
     unawaited(HomeWidgetService.instance.clearWidget(autoLogout));
-    
+
     // Clear native SharedPreferences username on logout
     try {
       await _loginChannel.invokeMethod('clearUsername');
     } catch (e) {
       _logger.warning('Failed to clear native username on logout', e);
     }
-    
+
+    // Clear additional caches (safe to call even if not initialized)
+    try {
+      await magicCacheService.clearMagicCache();
+    } catch (e) {
+      _logger.info("MagicCacheService not initialized or failed to clear", e);
+    }
+
+    try {
+      await memoriesCacheService.clearMemoriesCache();
+    } catch (e) {
+      _logger.info(
+        "MemoriesCacheService not initialized or failed to clear",
+        e,
+      );
+    }
+
     if (!autoLogout) {
       // Following services won't be initialized if it's the case of autoLogout
       FileUploader.instance.clearCachedUploadURLs();
@@ -217,6 +269,16 @@ class Configuration {
       FavoritesService.instance.clearCache();
       SearchService.instance.clearCache();
       PersonService.instance.clearCache();
+      try {
+        smartAlbumsService.clearCache();
+      } catch (e) {
+        _logger.info("SmartAlbumsService not initialized", e);
+      }
+      try {
+        billingService.clearCache();
+      } catch (e) {
+        _logger.info("BillingService not initialized", e);
+      }
       Bus.instance.fire(UserLoggedOutEvent());
     } else {
       await _preferences.setBool("auto_logout", true);
@@ -252,13 +314,17 @@ class Configuration {
     final loginKey = await CryptoUtil.deriveLoginKey(derivedKeyResult.key);
 
     // Encrypt the key with this derived key
-    final encryptedKeyData =
-        CryptoUtil.encryptSync(masterKey, derivedKeyResult.key);
+    final encryptedKeyData = CryptoUtil.encryptSync(
+      masterKey,
+      derivedKeyResult.key,
+    );
 
     // Generate a public-private keypair and encrypt the latter
     final keyPair = await CryptoUtil.generateKeyPair();
-    final encryptedSecretKeyData =
-        CryptoUtil.encryptSync(keyPair.sk, masterKey);
+    final encryptedSecretKeyData = CryptoUtil.encryptSync(
+      keyPair.sk,
+      masterKey,
+    );
 
     final attributes = KeyAttributes(
       CryptoUtil.bin2base64(kekSalt),
@@ -298,8 +364,10 @@ class Configuration {
     final loginKey = await CryptoUtil.deriveLoginKey(derivedKeyResult.key);
 
     // Encrypt the key with this derived key
-    final encryptedKeyData =
-        CryptoUtil.encryptSync(masterKey!, derivedKeyResult.key);
+    final encryptedKeyData = CryptoUtil.encryptSync(
+      masterKey!,
+      derivedKeyResult.key,
+    );
 
     final existingAttributes = getKeyAttributes();
 
@@ -360,10 +428,7 @@ class Configuration {
       CryptoUtil.base642bin(attributes.publicKey),
       secretKey,
     );
-    await setToken(
-      CryptoUtil.bin2base64(token, urlSafe: true),
-    );
-    _logger.info('[DEBUG] decryptSecretsAndGetKeyEncKey: Token saved successfully.');
+    await setToken(CryptoUtil.bin2base64(token, urlSafe: true));
     return keyEncryptionKey;
   }
 
@@ -379,14 +444,18 @@ class Configuration {
     final encryptedRecoveryKey = CryptoUtil.encryptSync(recoveryKey, masterKey);
 
     return existingAttributes!.copyWith(
-      masterKeyEncryptedWithRecoveryKey:
-          CryptoUtil.bin2base64(encryptedMasterKey.encryptedData!),
-      masterKeyDecryptionNonce:
-          CryptoUtil.bin2base64(encryptedMasterKey.nonce!),
-      recoveryKeyEncryptedWithMasterKey:
-          CryptoUtil.bin2base64(encryptedRecoveryKey.encryptedData!),
-      recoveryKeyDecryptionNonce:
-          CryptoUtil.bin2base64(encryptedRecoveryKey.nonce!),
+      masterKeyEncryptedWithRecoveryKey: CryptoUtil.bin2base64(
+        encryptedMasterKey.encryptedData!,
+      ),
+      masterKeyDecryptionNonce: CryptoUtil.bin2base64(
+        encryptedMasterKey.nonce!,
+      ),
+      recoveryKeyEncryptedWithMasterKey: CryptoUtil.bin2base64(
+        encryptedRecoveryKey.encryptedData!,
+      ),
+      recoveryKeyDecryptionNonce: CryptoUtil.bin2base64(
+        encryptedRecoveryKey.nonce!,
+      ),
     );
   }
 
@@ -462,7 +531,8 @@ class Configuration {
   Future<void> setToken(String token) async {
     _cachedToken = token;
     await _preferences.setString(tokenKey, token);
-    _logger.info('[DEBUG] setToken: token saved: ${token.substring(0, token.length > 8 ? 8 : token.length)}...');
+    _logger.info(
+        '[DEBUG] setToken: token saved: ${token.substring(0, token.length > 8 ? 8 : token.length)}...',);
     Bus.instance.fire(SignedInEvent());
   }
 
@@ -523,14 +593,9 @@ class Configuration {
     _key = key;
     if (key == null) {
       // Used to clear key from secure storage
-      await _secureStorage.delete(
-        key: keyKey,
-      );
+      await _secureStorage.delete(key: keyKey);
     } else {
-      await _secureStorage.write(
-        key: keyKey,
-        value: key,
-      );
+      await _secureStorage.write(key: keyKey, value: key);
     }
   }
 
@@ -538,14 +603,9 @@ class Configuration {
     _secretKey = secretKey;
     if (secretKey == null) {
       // Used to clear secret key from secure storage
-      await _secureStorage.delete(
-        key: secretKeyKey,
-      );
+      await _secureStorage.delete(key: secretKeyKey);
     } else {
-      await _secureStorage.write(
-        key: secretKeyKey,
-        value: secretKey,
-      );
+      await _secureStorage.write(key: secretKeyKey, value: secretKey);
     }
   }
 
@@ -666,22 +726,18 @@ class Configuration {
   }
 
   Future<void> _migrateSecurityStorageToFirstUnlock() async {
+    _logger.info(
+      "(for debugging) Migrating secure storage to first unlock if needed",
+    );
     final hasMigratedSecureStorage =
         _preferences.getBool(hasMigratedSecureStorageKey) ?? false;
     if (!hasMigratedSecureStorage && _key != null && _secretKey != null) {
-      await _secureStorage.write(
-        key: keyKey,
-        value: _key,
-      );
-      await _secureStorage.write(
-        key: secretKeyKey,
-        value: _secretKey,
-      );
-      await _preferences.setBool(
-        hasMigratedSecureStorageKey,
-        true,
-      );
+      _logger.info("(for debugging) Migrating secure storage to first unlock");
+      await _secureStorage.write(key: keyKey, value: _key);
+      await _secureStorage.write(key: secretKeyKey, value: _secretKey);
+      await _preferences.setBool(hasMigratedSecureStorageKey, true);
     }
+    _logger.info("(for debugging) Migration check complete");
   }
 
   Future<String> _getOrCreateAnonymousUserID() async {

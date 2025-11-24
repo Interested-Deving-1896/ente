@@ -104,7 +104,7 @@ class _MemoriesWidgetSettingsState extends State<MemoriesWidgetSettings> {
             flexibleSpaceTitle: TitleBarTitleWidget(
               title: AppLocalizations.of(context).memories,
             ),
-            expandedHeight: MediaQuery.textScalerOf(context).scale(120),
+            expandedHeight: MediaQuery.textScalerOf(context).scale(136),
             flexibleSpaceCaption: hasInstalledAny
                 ? AppLocalizations.of(context).memoriesWidgetDesc
                 : context.l10n.addMemoriesWidgetPrompt,
@@ -131,10 +131,10 @@ class _MemoriesWidgetSettingsState extends State<MemoriesWidgetSettings> {
                     SizedBox(
                       height: MediaQuery.sizeOf(context).height * 0.5 - 200,
                     ),
-                    Image.asset(
-                      "assets/memories-widget-static.png",
-                      height: 160,
-                    ),
+                    // Image.asset(
+                    //   "assets/memories-widget-static.png",
+                    //   height: 160,
+                    // ),
                   ],
                 ),
               ),

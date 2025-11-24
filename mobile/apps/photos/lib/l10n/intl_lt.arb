@@ -1170,7 +1170,6 @@
   },
   "maps": "Žemėlapiai",
   "enableMaps": "Įjungti žemėlapius",
-  "enableMapsDesc": "Tai parodys jūsų nuotraukas pasaulio žemėlapyje.\n\nŠį žemėlapį talpina „OpenStreetMap“, o tiksliomis nuotraukų vietovėmis niekada nebendrinama.\n\nŠią funkciją bet kada galite išjungti iš nustatymų.",
   "quickLinks": "Sparčios nuorodos",
   "selectItemsToAdd": "Pasirinkite elementus įtraukti",
   "addSelected": "Pridėti pasirinktus",
@@ -1776,14 +1775,6 @@
   "same": "Tas pats",
   "different": "Skirtingas",
   "sameperson": "Tas pats asmuo?",
-  "cLTitle1": "Pažangi vaizdų rengyklė",
-  "cLDesc1": "Mes išleidžiame naują ir pažangią vaizdų rengyklę, kurioje yra daugiau apkirpimo rėmelių, filtro nustatymų sparčiams redagavimams, tikslaus sureguliavimo parinkčių, įskaitant sodrumą, kontrastą, skaistį, temperatūrą ir daug daugiau. Naujoji rengyklė taip pat suteikia galimybę piešti ant nuotraukų ir pridėti jaustukus kaip lipdukus.",
-  "cLTitle2": "Išmanieji albumai",
-  "cLDesc2": "Dabar galite automatiškai įtraukti pasirinktų asmenų nuotraukas į bet kurį albumą. Tiesiog eikite į albumą ir iš išskleidžiamojo meniu pasirinkite „Automatiškai įtraukti asmenis“. Jei naudojama kartu su bendrinimu albumu, nuotraukas galite bendrinti be jokių paspaudimų.",
-  "cLTitle3": "Patobulinta galerija",
-  "cLDesc3": "Pridėjome galimybę sugrupuoti galeriją pagal savaites, mėnesius ir metus. Dabar galite pritaikyti galeriją taip, kad ji atrodytų būtent taip, kaip norite su šiomis naujomis grupavimo parinktimis ir pasirinktiniais tinkleliais.",
-  "cLTitle4": "Spartesnis slinkimas",
-  "cLDesc4": "Kartu su daugybe vidinių patobulinimų pagerinti galerijos slinkimo patirtį, mes taip pat pertvarkėme slinkties juostą, kad joje būtų rodomi žymekliai, leidžiantys sparčiai pereiti per laiko juostą.",
   "indexingPausedStatusDescription": "Indeksavimas pristabdytas. Jis bus automatiškai tęsiamas, kai įrenginys bus parengtas. Įrenginys laikomas parengtu, kai jo akumuliatoriaus įkrovos lygis, akumuliatoriaus būklė ir terminė būklė yra normos ribose.",
   "thisWeek": "Šią savaitę",
   "lastWeek": "Praėjusią savaitę",
@@ -1808,7 +1799,6 @@
   "automaticallyAnalyzeAndSplitGrouping": "Mes automatiškai išanalizuosime grupavimą, kad nustatytume, ar yra keli asmenys, ir vėl juos atskirsime. Tai gali užtrukti keletą sekundžių.",
   "layout": "Išdėstymas",
   "day": "Diena",
-  "peopleAutoAddDesc": "Pasirinkite asmenis, kuriuos norite automatiškai įtraukti į albumą.",
   "undo": "Anuliuoti",
   "redo": "Grąžinti",
   "filter": "Filtruoti",
@@ -1819,15 +1809,49 @@
   "font": "Šriftas",
   "background": "Fonas",
   "align": "Lygiuoti",
+  "videosProcessed": "Vaizdo įrašai apdoroti",
+  "totalVideos": "Iš viso vaizdo įrašų",
+  "skippedVideos": "Praleisti vaizdo įrašai",
   "similarImages": "Panašūs vaizdai",
   "findSimilarImages": "Rasti panašų vaizdų",
   "noSimilarImagesFound": "Panašių vaizdų nerasta",
   "yourPhotosLookUnique": "Jūsų nuotraukos atrodo ypatingos",
   "selectionOptions": "Pasirinkimo parinktys",
+  "selectAllWithCount": "Visi panašumai ({count})",
+  "@selectAllWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chooseSimilarImagesToSelect": "Pasirinkite vaizdus pagal jų vizualinį panašumą.",
   "deleteFiles": "Ištrinti failus",
   "areYouSureDeleteFiles": "Ar tikrai norite ištrinti šiuos failus?",
   "greatJob": "Puiku!",
+  "cleanedUpSimilarImages": "Atlaisvinote {size} vietos.",
+  "@cleanedUpSimilarImages": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "size": "Dydis",
   "similarity": "Panašumas",
-  "processingLocally": "Apdorojama vietoje"
+  "analyzingPhotosLocally": "Analizuojamos jūsų nuotraukos vietoje...",
+  "lookingForVisualSimilarities": "Ieškoma vizualių panašumų...",
+  "comparingImageDetails": "Lyginama vaizdo išsami informacija...",
+  "findingSimilarImages": "Randama panašių vaizdų...",
+  "almostDone": "Beveik baigta...",
+  "processingLocally": "Apdorojama vietoje",
+  "useMLToFindSimilarImages": "Peržiūrėkite ir pašalinkite vaizdus, kurie atrodo panašūs vienas į kitą.",
+  "all": "Visi",
+  "similar": "Panašūs",
+  "identical": "Vienodi",
+  "nothingHereTryAnotherFilter": "Čia nieko nėra. Bandykite kitą filtrą. 👀",
+  "related": "Susiję",
+  "hoorayyyy": "Puiiiiku!",
+  "nothingToTidyUpHere": "Čia nėra ko tvarkyti.",
+  "deletingDash": "Ištrinama - "
 }

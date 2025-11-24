@@ -122,7 +122,7 @@ class _SecuritySectionWidgetState extends State<SecuritySectionWidget> {
         trailingIcon: Icons.chevron_right_outlined,
         trailingIconIsMuted: true,
         onTap: () async {
-          if (await LockScreenSettings.instance.shouldShowLockScreen()) {
+          if (await LockScreenSettings.instance.isDeviceSupported()) {
             final bool result = await requestAuthentication(
               context,
               context.l10n.authToChangeLockscreenSetting,
@@ -137,19 +137,17 @@ class _SecuritySectionWidgetState extends State<SecuritySectionWidget> {
               );
             }
           } else {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return const LockScreenOptions();
-                },
-              ),
+            await showErrorDialog(
+              context,
+              context.l10n.noSystemLockFound,
+              context.l10n.toEnableAppLockPleaseSetupDevicePasscodeOrScreen,
             );
           }
         },
       ),
       sectionOptionSpacing,
     ]);
-    
+
     return Column(
       children: children,
     );

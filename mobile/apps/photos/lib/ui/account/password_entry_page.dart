@@ -144,7 +144,7 @@ class _PasswordEntryPageState extends State<PasswordEntryPage> {
     Color passwordStrengthColor = Colors.redAccent;
     if (_passwordStrength > kStrongPasswordStrengthThreshold) {
       passwordStrengthText = AppLocalizations.of(context).strongStrength;
-              passwordStrengthColor = const Color(0xFF475CC7);
+      passwordStrengthColor = const Color(0xFF475CC7);
     } else if (_passwordStrength > kMildPasswordStrengthThreshold) {
       passwordStrengthText = AppLocalizations.of(context).moderateStrength;
       passwordStrengthColor = Colors.orangeAccent;
@@ -344,7 +344,8 @@ class _PasswordEntryPageState extends State<PasswordEntryPage> {
                         const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     child: Text(
                       AppLocalizations.of(context).passwordStrength(
-                          passwordStrengthValue: passwordStrengthText,),
+                        passwordStrengthValue: passwordStrengthText,
+                      ),
                       style: TextStyle(
                         color: passwordStrengthColor,
                       ),

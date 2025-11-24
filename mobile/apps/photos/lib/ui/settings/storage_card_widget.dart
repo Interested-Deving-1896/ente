@@ -24,8 +24,6 @@ class _StorageCardWidgetState extends State<StorageCardWidget> {
   int? familyMemberStorageLimit;
   bool showFamilyBreakup = false;
 
-
-
   @override
   Widget build(BuildContext context) {
     final inheritedUserDetails = InheritedUserDetails.of(context);
@@ -61,7 +59,6 @@ class _StorageCardWidgetState extends State<StorageCardWidget> {
                   color: strokeBaseDark,
                 ),
         ),
-
       ],
     );
   }
@@ -231,7 +228,9 @@ class _StorageCardWidgetState extends State<StorageCardWidget> {
                       : const SizedBox.shrink(),
                   Text(
                     AppLocalizations.of(context).availableStorageSpace(
-                        freeAmount: freeSpace, storageUnit: freeSpaceUnit,),
+                      freeAmount: freeSpace,
+                      storageUnit: freeSpaceUnit,
+                    ),
                     style: getEnteTextTheme(context)
                         .mini
                         .copyWith(color: textFaintDark),

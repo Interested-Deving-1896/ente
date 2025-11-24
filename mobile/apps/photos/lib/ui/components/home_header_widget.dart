@@ -59,13 +59,13 @@ class _HomeHeaderWidgetState extends State<HomeHeaderWidget> {
           ],
         ),
         // Small loading widget in the center - only show when loading
-        !_hasLoadedFiles 
-          ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: EnteLoadingWidget(),
-            )
-          : const SizedBox.shrink(),
+        !_hasLoadedFiles
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: EnteLoadingWidget(),
+              )
+            : const SizedBox.shrink(),
         IconButtonWidget(
           icon: Icons.add_photo_alternate_outlined,
           iconButtonType: IconButtonType.primary,

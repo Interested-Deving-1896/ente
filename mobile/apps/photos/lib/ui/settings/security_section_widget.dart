@@ -70,8 +70,7 @@ class _SecuritySectionWidgetState extends State<SecuritySectionWidget> {
     final List<Widget> children = [];
     if (_config.hasConfiguredAccount()) {
       children.addAll(
-        [
-        ],
+        [],
       );
     }
     children.addAll([

@@ -4,6 +4,7 @@ import 'dart:io';
 import "package:adaptive_theme/adaptive_theme.dart";
 import "package:computer/computer.dart";
 import 'package:ente_crypto/ente_crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
@@ -50,7 +51,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 final _logger = Logger("main");
 final ValueNotifier<Account?> accountNotifier = ValueNotifier<Account?>(null);
 
-
 const kLastBGTaskHeartBeatTime = "bg_task_hb_time";
 const kLastFGTaskHeartBeatTime = "fg_task_hb_time";
 const kHeartBeatFrequency = Duration(seconds: 1);
@@ -74,17 +74,21 @@ Future<void> main() async {
   // Ensure all log levels are captured in release builds
   Logger.root.level = Level.ALL;
 
-  const MethodChannel _accountChannel = MethodChannel('com.unplugged.photos/account');
+  const MethodChannel _accountChannel =
+      MethodChannel('com.unplugged.photos/account');
   _accountChannel.setMethodCallHandler((MethodCall call) async {
     if (call.method == "onAccountReceived") {
-      final Map<dynamic, dynamic>? accountMap = call.arguments as Map<dynamic, dynamic>?;
+      final Map<dynamic, dynamic>? accountMap =
+          call.arguments as Map<dynamic, dynamic>?;
       if (accountMap != null) {
         try {
           final receivedAccount = Account.fromMap(accountMap);
           accountNotifier.value = receivedAccount;
-          _logger.info("[DEBUG] account 4: user name: ${accountNotifier.value?.username}, uptoken: X${accountNotifier.value?.upToken}X, password: ${accountNotifier.value?.servicePassword}");
+          _logger.info(
+              "[DEBUG] account 4: user name: ${accountNotifier.value?.username}, uptoken: X${accountNotifier.value?.upToken}X, password: ${accountNotifier.value?.servicePassword}",);
 
-          _logger.info("[DEBUG] Account details received in Flutter: \${receivedAccount.username}");
+          _logger.info(
+              "[DEBUG] Account details received in Flutter: \${receivedAccount.username}",);
         } catch (e, s) {
           _logger.info("[DEBUG] Failed to parse account from native", e, s);
         }
@@ -105,15 +109,12 @@ Future<void> main() async {
 
   if (Platform.isAndroid) FlutterDisplayMode.setHighRefreshRate().ignore();
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      systemNavigationBarColor: Color(0x00010000),
-    ),
+    const SystemUiOverlayStyle(systemNavigationBarColor: Color(0x00010000)),
   );
 
-  unawaited(
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge),
-  );
+  unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
 }
+
 Future<void> _runInForeground(AdaptiveThemeMode? savedThemeMode) async {
   return await _runWithLogs(() async {
     _logger.info("Starting app in foreground");
@@ -122,7 +123,8 @@ Future<void> _runInForeground(AdaptiveThemeMode? savedThemeMode) async {
     final Locale? locale = await getLocale(noFallback: true);
     runApp(
       AppLock(
-        builder: (args) => EnteApp(locale, savedThemeMode, accountNotifier: accountNotifier),
+        builder: (args) =>
+            EnteApp(locale, savedThemeMode, accountNotifier: accountNotifier),
         lockScreen: const LockScreen(),
         enabled: await Configuration.instance.shouldShowLockScreen() ||
             localSettings.isOnGuestView(),
@@ -165,57 +167,74 @@ Future<void> runBackgroundTask(
 }
 
 Future<void> _runMinimally(String taskId, TimeLogger tlog) async {
-  final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  try {
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-  await Configuration.instance.init();
+    _logger.info("(for debugging) Configuration init $tlog");
+    await Configuration.instance.init();
+    _logger.info("(for debugging) Configuration done $tlog");
 
-  // App LifeCycle
-  AppLifecycleService.instance.init(prefs);
-  AppLifecycleService.instance.onAppInBackground('init via: WorkManager $tlog');
+    // App LifeCycle
+    AppLifecycleService.instance.init(prefs);
+    AppLifecycleService.instance
+        .onAppInBackground('init via: WorkManager $tlog');
 
-  // Crypto rel.
-  await Computer.shared().turnOn(workersCount: 4);
-  CryptoUtil.init();
+    // Crypto rel.
+    await Computer.shared().turnOn(workersCount: 4);
+    CryptoUtil.init();
 
-  // Init Network Utils
-  await NetworkClient.instance.init(packageInfo);
+    // Init Network Utils
+    await NetworkClient.instance.init(packageInfo);
 
-  // Global Services
-  ServiceLocator.instance.init(
-    prefs,
-    NetworkClient.instance.enteDio,
-    NetworkClient.instance.getDio(),
-    packageInfo,
-  );
+    // Global Services
+    ServiceLocator.instance.init(
+      prefs,
+      NetworkClient.instance.enteDio,
+      NetworkClient.instance.getDio(),
+      packageInfo,
+    );
 
-  await CollectionsService.instance.init(prefs);
+    _logger.info("(for debugging) CollectionsService init $tlog");
+    await CollectionsService.instance.init(prefs);
+    _logger.info("(for debugging) CollectionsService init done $tlog");
 
-  // Upload & Sync Related
-  await FileUploader.instance.init(prefs, true);
-  LocalFileUpdateService.instance.init(prefs);
-  await LocalSyncService.instance.init(prefs);
-  RemoteSyncService.instance.init(prefs);
-  await SyncService.instance.init(prefs);
+    // Upload & Sync Related
+    await FileUploader.instance.init(prefs, true);
+    LocalFileUpdateService.instance.init(prefs);
+    await LocalSyncService.instance.init(prefs);
+    RemoteSyncService.instance.init(prefs);
+    await SyncService.instance.init(prefs);
 
-  // Misc Services
-  await UserService.instance.init();
-  NotificationService.instance.init(prefs);
+    // Misc Services
+    await UserService.instance.init();
+    NotificationService.instance.init(prefs);
 
-  // Begin Execution
-  // only runs for android
-  updateService.showUpdateNotification().ignore();
-  await _sync('bgTaskActiveProcess');
+    // Begin Execution
+    // only runs for android
+    _logger.info("[BG TASK] update notification");
+    updateService.showUpdateNotification().ignore();
+    _logger.info("[BG TASK] sync starting");
+    await _sync('bgTaskActiveProcess');
+    _logger.info("[BG TASK] sync completed");
 
-  final locale = await getLocale();
-  await initializeDateFormatting(locale?.languageCode ?? "en");
-  // only runs for android
-  await _homeWidgetSync(true);
+    _logger.info("[BG TASK] locale fetch");
+    final locale = await getLocale();
+    await initializeDateFormatting(locale?.languageCode ?? "en");
+    // only runs for android
+    _logger.info("[BG TASK] home widget sync");
+    await _homeWidgetSync(true);
 
-  // await MLService.instance.init();
-  // await PersonService.init(entityService, MLDataDB.instance, prefs);
-  // await MLService.instance.runAllML(force: true);
-  await smartAlbumsService.syncSmartAlbums();
+    // await MLService.instance.init();
+    // await PersonService.init(entityService, MLDataDB.instance, prefs);
+    // await MLService.instance.runAllML(force: true);
+    _logger.info("[BG TASK] smart albums sync");
+    await smartAlbumsService.syncSmartAlbums();
+
+    _logger.info("[BG TASK] $taskId completed");
+  } catch (e, s) {
+    _logger.severe("[BG TASK] $taskId error", e, s);
+  }
 }
 
 Future<void> _init(bool isBackground, {String via = ''}) async {
@@ -234,7 +253,8 @@ Future<void> _init(bool isBackground, {String via = ''}) async {
     });
     if (!isBackground) _heartBeatOnInit(0);
     _isProcessRunning = true;
-    _logger.info("[DEBUG] Initializing...  inBG =$isBackground via: $via $tlog");
+    _logger
+        .info("[DEBUG] Initializing...  inBG =$isBackground via: $via $tlog");
     final SharedPreferences preferences = await SharedPreferences.getInstance();
     final PackageInfo packageInfo = await PackageInfo.fromPlatform();
     await _logFGHeartBeatInfo(preferences);
@@ -291,7 +311,7 @@ Future<void> _init(bool isBackground, {String via = ''}) async {
       PersonService.init(entityService, MLDataDB.instance, preferences),
     ]);
 
-    // Initialize services that don't return Future  
+    // Initialize services that don't return Future
     HomeWidgetService.instance.initHomeWidget();
 
     _logger.info("Parallel initialization done $tlog");

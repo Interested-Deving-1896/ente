@@ -20,6 +20,7 @@ import 'package:photos/events/account_configured_event.dart';
 import 'package:photos/events/backup_folders_updated_event.dart';
 import "package:photos/events/collection_updated_event.dart";
 import "package:photos/events/files_updated_event.dart";
+import "package:photos/events/homepage_swipe_to_select_in_progress_event.dart";
 import 'package:photos/events/permission_granted_event.dart';
 import 'package:photos/events/subscription_purchased_event.dart';
 import 'package:photos/events/sync_status_update_event.dart';
@@ -51,6 +52,7 @@ import "package:photos/theme/effects.dart";
 import 'package:photos/theme/ente_theme.dart';
 import 'package:photos/ui/account/up_login_page.dart';
 import 'package:photos/ui/collections/collection_action_sheet.dart';
+import "package:photos/ui/common/web_page.dart";
 import "package:photos/ui/components/buttons/button_widget.dart";
 import "package:photos/ui/components/models/button_type.dart";
 import 'package:photos/ui/extents_page_view.dart';
@@ -78,7 +80,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeWidget extends StatefulWidget {
   final ValueNotifier<Account?>? accountNotifier;
-  
+
   const HomeWidget({
     super.key,
     this.accountNotifier,
@@ -97,7 +99,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   );
 
   static const String _loginFlowActiveKey = "login_flow_active";
-  static const MethodChannel _logoutChannel = MethodChannel('ente_logout_channel');
+  static const MethodChannel _logoutChannel =
+      MethodChannel('ente_logout_channel');
 
   final _logger = Logger("HomeWidgetState");
   final _selectedAlbums = SelectedAlbums();
@@ -113,6 +116,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   bool _shouldRenderCreateCollectionSheet = false;
   bool _showShowBackupHook = false;
   final isOnSearchTabNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _swipeToSelectInProgressNotifier =
+      ValueNotifier<bool>(false);
   bool _isLoadingPageActive = false;
   bool _shouldShowLoadingPage = false;
 
@@ -127,6 +132,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   late StreamSubscription<AccountConfiguredEvent> _accountConfiguredEvent;
   late StreamSubscription<CollectionUpdatedEvent> _collectionUpdatedEvent;
   late StreamSubscription _publicAlbumLinkSubscription;
+  late StreamSubscription<HomepageSwipeToSelectInProgressEvent>
+      _homepageSwipeToSelectInProgressEventSubscription;
 
   final DiffFetcher _diffFetcher = DiffFetcher();
 
@@ -175,7 +182,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         Bus.instance.on<TriggerLogoutEvent>().listen((event) async {
       await _autoLogoutAlert();
     });
-    _loggedOutEvent = Bus.instance.on<UserLoggedOutEvent>().listen((event) async {
+    _loggedOutEvent =
+        Bus.instance.on<UserLoggedOutEvent>().listen((event) async {
       _logger.info('[DEBUG] logged out, selectTab index to 0');
       _selectedTabIndex = 0;
 
@@ -271,15 +279,18 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         _logger.info('[DEBUG] Received logout request from native');
         await Configuration.instance.logout(autoLogout: true);
         // Notify native that logout is complete
-        await const MethodChannel('ente_logout_complete_channel').invokeMethod('logoutComplete');
+        await const MethodChannel('ente_logout_complete_channel')
+            .invokeMethod('logoutComplete');
       }
     });
 
     // Add MethodChannel handler for app resume (when returning from gallery app)
-    const MethodChannel _appResumeChannel = MethodChannel('com.unplugged.photos/account');
+    const MethodChannel _appResumeChannel =
+        MethodChannel('com.unplugged.photos/account');
     _appResumeChannel.setMethodCallHandler((call) async {
       if (call.method == 'onAppResumed') {
-        _logger.info('[DEBUG] App resumed - user returned from gallery app or other activity');
+        _logger.info(
+            '[DEBUG] App resumed - user returned from gallery app or other activity',);
 
         try {
           _logger.info('[DEBUG] App resume handled successfully');
@@ -305,14 +316,22 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         }
       });
     }
+
+    _homepageSwipeToSelectInProgressEventSubscription = Bus.instance
+        .on<HomepageSwipeToSelectInProgressEvent>()
+        .listen((inProgress) {
+      _swipeToSelectInProgressNotifier.value = inProgress.isInProgress;
+    });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.detached || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.detached ||
+        state == AppLifecycleState.inactive) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_loginFlowActiveKey, false);
-      _logger.info('Cleared _loginFlowActiveKey due to app lifecycle state: $state');
+      _logger.info(
+          'Cleared _loginFlowActiveKey due to app lifecycle state: $state',);
     }
   }
 
@@ -345,6 +364,7 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
 
       final Collection collection = await CollectionsService.instance
           .getCollectionFromPublicLink(context, uri);
+
       final existingCollection =
           CollectionsService.instance.getCollectionByID(collection.id);
 
@@ -358,6 +378,20 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         );
         return;
       }
+
+      // Check for trip layout and show in webview
+      if (collection.pubMagicMetadata.layout == "trip") {
+        await routeToPage(
+          context,
+          WebPage(
+            collection.displayName,
+            uri.toString(),
+            canOpenInBrowser: true,
+          ),
+        );
+        return;
+      }
+
       final dialog = createProgressDialog(context, "Loading...");
       final publicUrl = collection.publicURLs[0];
       if (!publicUrl.enableDownload) {
@@ -421,7 +455,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
                 }),
               );
             } catch (e, s) {
-              _logger.info("[DEBUG] Failed to decrypt password for album", e, s);
+              _logger.info(
+                  "[DEBUG] Failed to decrypt password for album", e, s,);
               await showGenericErrorDialog(context: context, error: e);
               return;
             }
@@ -520,6 +555,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
     if (Platform.isIOS) {
       _publicAlbumLinkSubscription.cancel();
     }
+    _homepageSwipeToSelectInProgressEventSubscription.cancel();
+    _swipeToSelectInProgressNotifier.dispose();
     super.dispose();
   }
 
@@ -645,7 +682,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
         );
       }
     } catch (e) {
-      _logger.info("[DEBUG] Error while getting initial public album deep link: $e");
+      _logger.info(
+          "[DEBUG] Error while getting initial public album deep link: $e",);
     }
 
     _publicAlbumLinkSubscription = appLinks.uriLinkStream.listen(
@@ -753,7 +791,8 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
             _logger.info("[DEBUG] onLoginComplete fired");
             final username = Configuration.instance.getUsername();
             _logger.info("[DEBUG] Username in onLoginComplete: $username");
-            _logger.info("[DEBUG] hasConfiguredAccount: "+Configuration.instance.hasConfiguredAccount().toString());
+            _logger.info("[DEBUG] hasConfiguredAccount: " +
+                Configuration.instance.hasConfiguredAccount().toString(),);
             // Username-to-native logic removed; now handled in LoadingPage
             _isLoadingPageActive = false;
             _shouldShowLoadingPage = false;
@@ -805,32 +844,42 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
       children: [
         Builder(
           builder: (context) {
-            return ExtentsPageView(
-              onPageChanged: (page) {
-                Bus.instance.fire(
-                  TabChangedEvent(
-                    page,
-                    TabChangedEventSource.pageView,
-                  ),
+            return ValueListenableBuilder(
+              valueListenable: _swipeToSelectInProgressNotifier,
+              builder: (context, inProgress, child) {
+                return ExtentsPageView(
+                  onPageChanged: (page) {
+                    Bus.instance.fire(
+                      TabChangedEvent(
+                        page,
+                        TabChangedEventSource.pageView,
+                      ),
+                    );
+                  },
+                  controller: _pageController,
+                  openDrawer: Scaffold.of(context).openDrawer,
+                  physics: inProgress
+                      ? const NeverScrollableScrollPhysics()
+                      : const BouncingScrollPhysics(),
+                  children: [
+                    _showShowBackupHook
+                        ? const StartBackupHookWidget(
+                            headerWidget: HeaderWidget(),
+                          )
+                        : child!,
+                    UserCollectionsTab(selectedAlbums: _selectedAlbums),
+                    // _sharedCollectionTab,
+                    _searchTab,
+                  ],
                 );
               },
-              controller: _pageController,
-              openDrawer: Scaffold.of(context).openDrawer,
-              physics: const BouncingScrollPhysics(),
-              children: [
-                _showShowBackupHook
-                    ? const StartBackupHookWidget(headerWidget: HeaderWidget())
-                    : HomeGalleryWidget(
-                        header: const HeaderWidget(),
-                        footer: const SizedBox(
-                          height: 160,
-                        ),
-                        selectedFiles: _selectedFiles,
-                      ),
-                UserCollectionsTab(selectedAlbums: _selectedAlbums),
-                // _sharedCollectionTab,
-                _searchTab,
-              ],
+              child: HomeGalleryWidget(
+                header: const HeaderWidget(),
+                footer: const SizedBox(
+                  height: 160,
+                ),
+                selectedFiles: _selectedFiles,
+              ),
             );
           },
         ),
@@ -957,10 +1006,10 @@ class _HomeWidgetState extends State<HomeWidget> with WidgetsBindingObserver {
   }
 
   void _getCredentials(BuildContext context, Uri? link) {
-    if (Configuration.instance.hasConfiguredAccount()) {
+    if (Configuration.instance.hasConfiguredAccount() || link == null) {
       return;
     }
-    final ott = link!.queryParameters["ott"]!;
+    final ott = link.queryParameters["ott"]!;
     UserService.instance.verifyEmail(context, ott);
   }
 

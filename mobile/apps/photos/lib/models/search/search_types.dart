@@ -14,6 +14,7 @@ import "package:photos/models/collection/collection_items.dart";
 import "package:photos/models/search/search_result.dart";
 import "package:photos/models/typedefs.dart";
 import "package:photos/services/collections_service.dart";
+import "package:photos/services/machine_learning/face_ml/face_filtering/face_filtering_constants.dart";
 import "package:photos/services/search_service.dart";
 import "package:photos/ui/viewer/gallery/collection_page.dart";
 import "package:photos/utils/dialog_util.dart";
@@ -91,9 +92,7 @@ extension SectionTypeExtensions on SectionType {
     }
   }
 
-  bool get sortByName =>
-      this != SectionType.face &&
-      this != SectionType.magic;
+  bool get sortByName => this != SectionType.face && this != SectionType.magic;
 
   bool get isEmptyCTAVisible {
     switch (this) {
@@ -201,7 +200,12 @@ extension SectionTypeExtensions on SectionType {
   }) {
     switch (this) {
       case SectionType.face:
-        return SearchService.instance.getAllFace(limit);
+        return SearchService.instance.getAllFace(
+          limit,
+          minClusterSize: limit == null
+              ? kMinimumClusterSizeAllFaces
+              : kMinimumClusterSizeSearchResult,
+        );
       case SectionType.magic:
         return SearchService.instance.getMagicSectionResults(context!);
       case SectionType.location:
