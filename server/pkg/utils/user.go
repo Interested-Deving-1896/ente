@@ -19,7 +19,7 @@ func (c *User) GetUserID(upUsername string) (int64, string, error) {
 	var emailHash string
 	var user ente.User
 	emailHash, err = crypto.GetHash(upUsername, c.HashingKey)
-	log.Infof("reqBody.Username: %s", upUsername)
+	log.Infof("Username: %s, emailHash: %s", upUsername, emailHash)
 	if err != nil {
 		return 0, "", stacktrace.Propagate(err, "failed to hash username")
 	}
@@ -28,10 +28,11 @@ func (c *User) GetUserID(upUsername string) (int64, string, error) {
 	if err != nil {
 		err = nil
 		// If user not found, try with email format (username@domain)
-		log.Infof("user not found c.UserRepo.GetUserByEmailHash(%s): %s", user.Name, err)
+		log.Infof("user not found c.UserRepo.GetUserByEmailHash(%s): %s", upUsername, err)
 
 		upUsername = upUsername + "@" + viper.GetString("unplugged.email-host")
 		emailHash, err = crypto.GetHash(upUsername, c.HashingKey)
+		log.Infof("Username: %s, emailHash: %s", upUsername, emailHash)
 		if err != nil {
 			return 0, "", stacktrace.Propagate(err, "failed to hash email username")
 		}
