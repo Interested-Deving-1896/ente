@@ -23,7 +23,6 @@ class LoginActivity : AppCompatActivity() {
 
         private fun isDebugBuild(context: android.content.Context): Boolean {
             val isDebug = context.packageName.endsWith(".dev") || context.packageName.endsWith(".debug")
-            Log.d("UpEnte", "[DEBUG] isDebugBuild: packageName=${context.packageName}, isDebug=$isDebug")
             return isDebug
         }
     }
@@ -35,9 +34,7 @@ class LoginActivity : AppCompatActivity() {
                     val servicePassword = result.data?.getStringExtra("service_password") ?: ""
                     val upToken = result.data?.getStringExtra("up_token") ?: ""
                     val usernameRaw = result.data?.getStringExtra("username") ?: ""
-                    Log.d("UpEnte", "[AccountApp] service_password: $servicePassword")
-                    Log.d("UpEnte", "[AccountApp] up_token: $upToken")
-                    Log.d("UpEnte", "[AccountApp] username: $usernameRaw")
+
                     account = AccountModel(
                         servicePassword,
                         upToken,
@@ -53,7 +50,6 @@ class LoginActivity : AppCompatActivity() {
                         }
 
                         "NO_CREDENTIALS" -> {
-                            Log.d("UpEnte", "Login error: Missing service password")
                             lifecycleScope.launch {
                                 val generateCredentialsIntent = Intent().apply {
                                     component = ComponentName(
@@ -103,23 +99,13 @@ class LoginActivity : AppCompatActivity() {
         val sharedPrefs: SharedPreferences = getSharedPreferences("ente_prefs", MODE_PRIVATE)
         val savedUsername = sharedPrefs.getString("username", null)
 
-        Log.d("UpEnte", "[DEBUG] onCreate: savedUsername from SharedPreferences: $savedUsername")
 
         val accountType =
             if (isDebugBuild(this)) "com.unplugged.account.dev" else "com.unplugged.account"
-        Log.d("UpEnte", "[DEBUG] onCreate: accountType used: $accountType")
 
         val accountManager = AccountManager.get(this)
         val account = accountManager.getAccountsByType(accountType).firstOrNull()
-        Log.d(
-            "UpEnte",
-            "[DEBUG] onCreate: account fetched: $account, name: ${account?.name}, type: ${account?.type}"
-        )
         val accountUsername = account?.let { accountManager.getUserData(it, "username") }
-        Log.d(
-            "UpEnte",
-            "[DEBUG] SharedPrefs username: $savedUsername, AccountManager username: $accountUsername"
-        )
 
         if (savedUsername.isNullOrEmpty()) {
             // No previous login, just start account app flow
@@ -141,18 +127,16 @@ class LoginActivity : AppCompatActivity() {
         }
 
         val trimmedSavedUsername = savedUsername.substringBefore('@')
-        Log.d(
-            "UpEnte",
-            "[DEBUG] Comparing trimmedSavedUsername: $trimmedSavedUsername to accountUsername: $accountUsername"
-        )
         if (accountUsername.isNullOrEmpty() || trimmedSavedUsername != accountUsername) {
             // Username mismatch or missing in AccountManager, trigger forced logout
             Log.d(
                 "UpEnte",
                 "[DEBUG] Username missing or mismatch, triggering forced logout via MainActivity"
             )
+            val callSecret = generateCallSecret()
             val openFlutterIntent = Intent(this, MainActivity::class.java).apply {
                 putExtra("shouldLogout", true)
+                putExtra("call_secret", callSecret)
                 // Use REORDER_TO_FRONT to bring existing MainActivity to front if it exists
                 addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
@@ -161,7 +145,7 @@ class LoginActivity : AppCompatActivity() {
             finish()
             return
         } else {
-            // If both usernames exist and match, go to MainActivity
+            // If both usernames exist and match, go to MainActivity (no secret needed for re-entry)
             Log.d("UpEnte", "[DEBUG] Usernames match, proceeding to MainActivity")
             val openFlutterIntent = Intent(this, MainActivity::class.java).apply {
                 putExtra("username", savedUsername)
@@ -186,8 +170,6 @@ class LoginActivity : AppCompatActivity() {
 
         if (retrievedAccount != null && retrievedAccount.servicePassword.isNotEmpty()) {
             // Login was successful
-            Log.d("UpEnte", "user is logged in. User: ${account?.username}")
-            Log.d("UpEnte", "Username will be saved by Flutter after Ente authentication")
             loginSuccess = true
         } else {
             // Login failed (account is null)
@@ -198,10 +180,12 @@ class LoginActivity : AppCompatActivity() {
         if (loginSuccess) {
             // Only start MainActivity if the login was actually successful
             Log.d("UpEnte", "Proceeding to MainActivity.")
+            val callSecret = generateCallSecret()
             val openFlutterIntent = Intent(this, MainActivity::class.java).apply {
                 putExtra("service_password", account?.servicePassword)
                 putExtra("up_token", account?.upToken)
                 putExtra("username", account?.username)
+                putExtra("call_secret", callSecret)
                 putExtra("from_gallery", true) // Flag to indicate this came from gallery app
                 // Use REORDER_TO_FRONT to bring existing MainActivity to front if it exists
                 addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
@@ -230,6 +214,14 @@ class LoginActivity : AppCompatActivity() {
             // If gallery app is not available, just finish the activity
             finish()
         }
+    }
+
+    private fun generateCallSecret(): String {
+        val secret = java.util.UUID.randomUUID().toString()
+        getSharedPreferences("ente_internal", MODE_PRIVATE)
+            .edit().putString("call_secret", secret).apply()
+        Log.d("UpEnte", "[DEBUG] Generated call secret for MainActivity")
+        return secret
     }
 
     override fun onDestroy() {

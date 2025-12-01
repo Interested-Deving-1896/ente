@@ -128,15 +128,9 @@ class _PaymentWebPageState extends State<PaymentWebPage> {
       'redirectURL': kWebPaymentRedirectUrl,
     };
     final tryParse = Uri.tryParse(kWebPaymentBaseEndpoint);
-    if (kDebugMode && kWebPaymentBaseEndpoint.startsWith("http://")) {
-      return WebUri.uri(
-        Uri.http(tryParse!.authority, tryParse.path, queryParameters),
-      );
-    } else {
-      return WebUri.uri(
-        Uri.https(tryParse!.authority, tryParse.path, queryParameters),
-      );
-    }
+    return WebUri.uri(
+      Uri.https(tryParse!.authority, tryParse.path, queryParameters),
+    );
   }
 
   // show dialog to handle accidental back press.

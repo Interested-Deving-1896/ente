@@ -49,9 +49,7 @@ class MethodChannelHandler {
                     val username = call.argument<String>("username")
                     val sharedPrefs = context.getSharedPreferences("ente_prefs", Context.MODE_PRIVATE)
                     sharedPrefs.edit().putString("username", username).apply()
-                    Log.d("UpEnte", "[DEBUG] Saved username to native SharedPreferences: $username")
                     val current = sharedPrefs.getString("username", null)
-                    Log.d("UpEnte", "[DEBUG] Username in native SharedPreferences after save: $current")
                     result.success(true)
                 }
                 "clearUsername" -> {
@@ -67,7 +65,6 @@ class MethodChannelHandler {
                 }
                 "getCurrentUsername" -> {
                     val username = getCurrentUsernameFromNativePreferences()
-                    Log.d("UpEnte", "Retrieved current username from native SharedPreferences: $username")
                     result.success(username)
                 }
                 "openGalleryApp" -> {
@@ -265,7 +262,6 @@ class MethodChannelHandler {
         Log.d("UpEnte", "[DEBUG] About to get current username from native SharedPreferences")
         val sharedPrefs: SharedPreferences = context.getSharedPreferences("ente_prefs", Context.MODE_PRIVATE)
         val username = sharedPrefs.getString("username", null)
-        Log.d("UpEnte", "[DEBUG] Retrieved current username from native SharedPreferences: $username")
         return username
     }
 } 

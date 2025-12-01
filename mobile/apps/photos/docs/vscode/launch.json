@@ -27,9 +27,9 @@
                 "--flavor",
                 "independent",
                 "--dart-define",
-                "endpoint=http://localhost:8080",
+                "endpoint=https://localhost:8080",
                 "--dart-define",
-                "web-family=http://localhost:3003",
+                "web-family=https://localhost:3003",
                 "--dart-define",
                 "cronetHttpNoPlay=true"
             ]
@@ -49,9 +49,9 @@
             "program": "mobile/lib/main.dart",
             "args": [
                 "--dart-define",
-                "endpoint=http://localhost:8080",
+                "endpoint=https://localhost:8080",
                 "--dart-define",
-                "web-family=http://localhost:3003"
+                "web-family=https://localhost:3003"
             ]
         }
     ]

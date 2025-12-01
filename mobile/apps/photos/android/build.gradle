@@ -6,11 +6,16 @@ ext {
 allprojects {
     repositories {
         google()
-        jcenter()
         mavenCentral()
         // mavenLocal() // for FDroid
         maven {
             url "${project(':ffmpeg_kit_flutter').projectDir}/libs"
+        }
+    }
+    
+    configurations.all {
+        resolutionStrategy {
+            force 'com.microsoft.onnxruntime:onnxruntime-android:1.23.2'
         }
     }
 }

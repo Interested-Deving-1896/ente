@@ -25,9 +25,31 @@
 -keep class io.flutter.embedding.engine.FlutterEngine { *; }
 -keep class io.flutter.embedding.engine.dart.DartExecutor { *; }
 
-# Keep your app's main classes
--keep class io.flutter.app.** { *; }
+# SECURE: Only keep essential classes, allow obfuscation of sensitive code
+# DO NOT use broad wildcards that prevent obfuscation
+
+# Keep only Flutter plugins (required for functionality)
 -keep class io.flutter.plugin.** { *; }
+
+# Keep only essential public entry points - everything else gets obfuscated
+-keep public class io.ente.photos.MainActivity {
+    public <init>(...);
+    # Keep the static method that LoginActivity calls
+    public static java.lang.String generateInternalAuthToken(android.content.Context);
+}
+
+-keep public class io.ente.photos.LoginActivity {
+    public <init>(...);
+}
+
+# Keep widget providers (Android system requirement)
+-keep public class * extends android.appwidget.AppWidgetProvider {
+    public <init>(...);
+    public void onUpdate(...);
+}
+
+# IMPORTANT: AccountModel, MethodChannelHandler, and other sensitive classes
+# are NOT kept here - they will be obfuscated for security
 
 # Keep Flutter native method channels
 -keepclassmembers class * {
@@ -77,3 +99,23 @@
     public void print(...);
     public void println(...);
 }
+
+# ENHANCED SECURITY: Advanced obfuscation settings
+-repackageclasses ''
+-allowaccessmodification
+-dontusemixedcaseclassnames
+
+# Enable aggressive obfuscation
+-overloadaggressively
+-adaptclassstrings
+
+# Protect serialization (required for Kotlin @Serializable)
+-keepattributes *Annotation*
+-keep class kotlinx.serialization.** { *; }
+
+# String obfuscation for sensitive constants
+-adaptclassstrings io.ente.photos.**
+
+# Additional security hardening
+-optimizationpasses 5
+-dontpreverify
