@@ -1,6 +1,8 @@
 package io.ente.photos
 
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import io.flutter.embedding.android.FlutterFragmentActivity // Your existing base class
@@ -16,29 +18,21 @@ class MainActivity : FlutterFragmentActivity() {
     private lateinit var methodChannelHandler: MethodChannelHandler
 
     private var pendingAccountDetails: Map<String, String>? = null
-
     private lateinit var accountManager: AccountManager
 
     private var pendingLogoutRestart = false
     private var pendingShouldLogout = false
 
+    private var logoutChannel: MethodChannel? = null
+
     companion object {
         private const val LOGOUT_CHANNEL_NAME = "ente_logout_channel"
     }
-
-    private var logoutChannel: MethodChannel? = null
-
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         Log.d("UpEnte", "configureFlutterEngine called")
         
-        // Enable Flutter logging in release builds
-        flutterEngine.dartExecutor.binaryMessenger.setMessageHandler("flutter/logs") { message, reply ->
-            val logData = String(message?.array() ?: byteArrayOf())
-            Log.d("Flutter", logData)
-            reply?.reply(null)
-        }
 
         GeneratedPluginRegistrant.registerWith(flutterEngine)
 
@@ -121,60 +115,143 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     private fun handleIntent(intent: Intent?) {
-
-        val servicePassword = intent?.getStringExtra("service_password")
-        val upToken = intent?.getStringExtra("up_token")
-        val username = intent?.getStringExtra("username")
-
-        Log.d("UpEnte", "handleIntent: received service_password=$servicePassword, up_token=$upToken, username=$username")
-        
-        // If this is a reorder-to-front scenario and we already have account details, 
-        // we might want to refresh the Flutter side
-        if (servicePassword == null && upToken == null && username == null && 
-            intent?.getBooleanExtra("shouldLogout", false) != true) {
-            Log.d("UpEnte", "[DEBUG] MainActivity brought to front without new account data - likely reorder scenario")
-            // Optionally refresh Flutter state or do nothing to keep existing state
+        if (intent == null) {
+            Log.d("UpEnte", "[DEBUG] Intent is null, returning")
             return
         }
 
-        if (servicePassword != null && upToken != null && username != null) {
-            val accountDetails = mapOf(
-                "service_password" to servicePassword,
-                "up_token" to upToken,
-                "username" to username
-            )
-
-            // Check if methodChannel is initialized (meaning configureFlutterEngine has run)
-            if (methodChannel != null) {
-                // Flutter engine is configured, send data directly
-                sendAccountDetailsToFlutter(accountDetails)
-            } else {
-                // Flutter engine not configured yet, or methodChannel not set up.
-                // Store data to send when configureFlutterEngine is called.
-                pendingAccountDetails = accountDetails
-            }
+        // Only process sensitive credentials from trusted internal source (LoginActivity)
+        if (isIntentFromLoginActivity(intent)) {
+            Log.d("UpEnte", "[DEBUG] Intent is from LoginActivity, handling login")
+            handleLoginIntent(intent)
+        } else {
+            Log.d("UpEnte", "[DEBUG] Intent is NOT from LoginActivity, handling as external")
+            // Handle external intents (gallery, sharing, deep links) - no credential processing
+            handleExternalIntent(intent)
         }
+    }
+    
+    private fun isIntentFromLoginActivity(intent: Intent): Boolean {
+        // Check if this intent contains credentials (new login attempt)
+        val hasServicePassword = intent.hasExtra("service_password")
+        val hasUpToken = intent.hasExtra("up_token") 
+        val hasUsername = intent.hasExtra("username")
+        val hasCredentials = hasServicePassword && hasUpToken && hasUsername
+        
+        // Only require shared secret validation for credential-passing intents
+        if (hasCredentials) {
+            Log.d("UpEnte", "[DEBUG] Intent contains credentials, validating shared secret")
+            val providedSecret = intent.getStringExtra("call_secret")
+            val prefs = getSharedPreferences("ente_internal", MODE_PRIVATE)
+            val expectedSecret = prefs.getString("call_secret", null)
+            
+            val hasValidSecret = providedSecret != null && 
+                                expectedSecret != null && 
+                                providedSecret == expectedSecret
+            
+            // IMPORTANT: Clear the secret immediately after validation if valid
+            if (hasValidSecret) {
+                prefs.edit().remove("call_secret").apply()
+                Log.d("UpEnte", "[DEBUG] Valid secret found and cleared")
+            }
+            
+            return hasValidSecret
+        } else {
+            // For non-credential intents (re-entry, logout), use existing logic
+            Log.d("UpEnte", "[DEBUG] Intent has no credentials, using existing validation")
+            return true  // Allow existing LoginActivity intents without credentials
+        }
+    }
+    
+    private fun handleLoginIntent(intent: Intent) {
+        val servicePassword = intent.getStringExtra("service_password")
+        val upToken = intent.getStringExtra("up_token")
+        val username = intent.getStringExtra("username")
+        
+        // Additional validation of credential format
+        if (servicePassword.isNullOrBlank() || upToken.isNullOrBlank() || username.isNullOrBlank()) {
+            Log.d("UpEnte", "[DEBUG] One or more credentials is null/blank, returning")
+            return
+        }
+        
+        // Validate username format (basic sanitization)
+        if (!isValidUsername(username)) {
+            Log.d("UpEnte", "[DEBUG] Username validation failed, returning")
+            return
+        }
+        
+        val accountDetails = mapOf(
+            "service_password" to servicePassword,
+            "up_token" to upToken,
+            "username" to username
+        )
+        
+        Log.d("UpEnte", "[DEBUG] Account details created, checking methodChannel")
 
-        if (intent?.getBooleanExtra("shouldLogout", false) == true && !pendingLogoutRestart) {
-            Log.d("UpEnte", "[DEBUG] shouldLogout received, will send logout to Flutter after engine ready")
+        // Check if methodChannel is initialized (meaning configureFlutterEngine has run)
+        if (methodChannel != null) {
+            Log.d("UpEnte", "[DEBUG] MethodChannel is ready, sending data to Flutter")
+            // Flutter engine is configured, send data directly
+            sendAccountDetailsToFlutter(accountDetails)
+        } else {
+            Log.d("UpEnte", "[DEBUG] MethodChannel not ready, storing as pending")
+            // Flutter engine not configured yet, or methodChannel not set up.
+            // Store data to send when configureFlutterEngine is called.
+            pendingAccountDetails = accountDetails
+        }
+        
+        // Handle logout flag from trusted source only (also requires valid token)
+        if (intent.getBooleanExtra("shouldLogout", false) && !pendingLogoutRestart) {
+            Log.d("UpEnte", "[DEBUG] Logout flag detected")
             pendingLogoutRestart = true
             pendingShouldLogout = true
-            // Do NOT call MethodChannel here!
         }
+    }
+    
+    private fun handleExternalIntent(intent: Intent) {
+        // Handle legitimate external intents safely (gallery, sharing, deep links)
+        when (intent.action) {
+            Intent.ACTION_VIEW,
+            Intent.ACTION_PICK,
+            Intent.ACTION_GET_CONTENT,
+            Intent.ACTION_SEND,
+            Intent.ACTION_SEND_MULTIPLE -> {
+                // These are safe - just pass the intent to Flutter for media handling
+                // No credential processing allowed from external sources
+                notifyFlutterOfExternalIntent(intent.action)
+            }
+            "es.antonborri.home_widget.action.LAUNCH" -> {
+                // Widget launch - safe
+                notifyFlutterOfExternalIntent("widget_launch")
+            }
+            else -> {
+                // Unknown external intent - ignore for security
+            }
+        }
+    }
+    
+    private fun isValidUsername(username: String): Boolean {
+        // Basic validation - adjust pattern as needed for your username requirements
+        return username.matches(Regex("^[a-zA-Z0-9._@-]+$")) && username.length <= 255
+    }
+    
+    private fun notifyFlutterOfExternalIntent(action: String?) {
+        // Notify Flutter of external intent without passing sensitive data
+        methodChannel?.invokeMethod("onExternalIntent", mapOf("action" to action))
     }
 
     private fun sendAccountDetailsToFlutter(accountDetails: Map<String, String>) {
         methodChannel?.invokeMethod("onAccountReceived", accountDetails, object : MethodChannel.Result {
             override fun success(result: Any?) {
-                 Log.d("UpEnte", "Account details sent to Flutter successfully.")
+                 Log.d("UpEnte", "[DEBUG] Account details sent to Flutter successfully.")
             }
 
             override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
-                 Log.e("UpEnte", "Failed to send account details: $errorCode $errorMessage")
+                 Log.e("UpEnte", "[DEBUG] Failed to send account details: $errorCode $errorMessage")
             }
 
             override fun notImplemented() {
-                 Log.w("UpEnte", "onAccountReceived not implemented on Dart side.")
+                 Log.w("UpEnte", "[DEBUG] onAccountReceived not implemented on Dart side.")
             }
         })
     }
@@ -205,7 +282,6 @@ class MainActivity : FlutterFragmentActivity() {
         // Only check account state, do not trigger logout to Flutter here
         // If needed, start login flow or clear state, but do not send onLogoutRequested
         // All forced logout is now handled via shouldLogout intent
-        Log.d("UpEnte", "[DEBUG] onStart: username in prefs: $savedUsername, accounts: ${accountsInSystem.map { it.name }}")
         if (savedUsername != null && savedUsername.isNotEmpty()) {
             if (accountsInSystem.none { it.type == accountType }) {
                 Log.d("UpEnte", "[DEBUG] No account found on start, requesting logout in Flutter")
@@ -215,7 +291,6 @@ class MainActivity : FlutterFragmentActivity() {
                 val account = accountsInSystem.firstOrNull { it.type == accountType }
                 val username = account?.let { accountManager.getUserData(it, "username") }
                 val trimmedSavedUsername = savedUsername?.substringBefore('@')
-                Log.d("UpEnte", "[DEBUG] Comparing trimmedSavedUsername: $trimmedSavedUsername to accountUsername: $username")
                 if (username != trimmedSavedUsername) {
                     Log.d("UpEnte", "[DEBUG] Username mismatch on start, requesting logout in Flutter")
                     val logoutChannel = MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, "ente_logout_channel")
@@ -230,9 +305,7 @@ class MainActivity : FlutterFragmentActivity() {
         accountManager.addOnAccountsUpdatedListener({ accountsInSystem ->
             // Only check account state, do not trigger logout to Flutter here
             // All forced logout is now handled via shouldLogout intent
-            Log.d("UpEnte", "[DEBUG] AccountManager listener: accounts: ${accountsInSystem.map { it.name }}")
         }, null, false)
-        Log.d("UpEnte", "[DEBUG] Registered AccountManager listener for $accountType")
     }
 
     private fun triggerLogoutToFlutter() {

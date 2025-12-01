@@ -22,10 +22,10 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-def keystoreProperties = new Properties()
-def keystorePropertiesFile = rootProject.file('key.properties')
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+def userPropertiesFile = file("${System.getProperty('user.home')}/Documents/up_dev_signature/signing.properties")
+def userProperties = new java.util.Properties()
+if (userPropertiesFile.exists()) {
+    userProperties.load(userPropertiesFile.newInputStream())
 }
 
 android {
@@ -76,29 +76,25 @@ android {
     }
 
     signingConfigs {
-        release {
-            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : System.getenv("SIGNING_KEY_PATH") ? file(System.getenv("SIGNING_KEY_PATH")) : null
-            keyAlias keystoreProperties['keyAlias'] ? keystoreProperties['keyAlias'] : System.getenv("SIGNING_KEY_ALIAS")
-            keyPassword keystoreProperties['keyPassword'] ? keystoreProperties['keyPassword'] : System.getenv("SIGNING_KEY_PASSWORD")
-            storePassword keystoreProperties['storePassword'] ? keystoreProperties['storePassword'] : System.getenv("SIGNING_STORE_PASSWORD")
-
+        // Debug signing with local keystore
+        def keystoreFile = file("${System.getProperty('user.home')}/Documents/up_dev_signature/up_dev.keystore")
+        if (keystoreFile.exists()) {
+            debug {
+                storeFile keystoreFile
+                storePassword userProperties.getProperty('keystorePassword', '')
+                keyAlias userProperties.getProperty('keyAlias', '')
+                keyPassword userProperties.getProperty('keyPassword', '')
+            }
         }
-
-        debug {
-            keyAlias 'up_dev_key'
-            keyPassword 'ntH_pmn23f$5'
-            storeFile file('./signature/up_dev.keystore')
-            storePassword 'ntH_pmn23f$5'
-            v2SigningEnabled true
+        
+        // Release signing via Jenkins externally
+        release {
+            storeFile userProperties['storeFile'] ? file(userProperties['storeFile']) : System.getenv("SIGNING_KEY_PATH") ? file(System.getenv("SIGNING_KEY_PATH")) : null
+            keyAlias userProperties['keyAlias'] ? userProperties['keyAlias'] : System.getenv("SIGNING_KEY_ALIAS")
+            keyPassword userProperties['keyPassword'] ? userProperties['keyPassword'] : System.getenv("SIGNING_KEY_PASSWORD")
+            storePassword userProperties['storePassword'] ? userProperties['storePassword'] : System.getenv("SIGNING_STORE_PASSWORD")
         }
     }
-
-//    flavorDimensions "default"
-//    productFlavors {
-//        independent {
-//            dimension "default"
-//        }
-//    }
 
     buildTypes {
         release {
@@ -117,7 +113,6 @@ android {
             }
         }
     }
-
 }
 
 rootProject.allprojects {
