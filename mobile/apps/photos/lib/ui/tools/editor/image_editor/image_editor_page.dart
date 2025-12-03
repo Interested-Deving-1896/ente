@@ -34,6 +34,7 @@ import "package:photos/ui/tools/editor/image_editor/image_editor_tune_bar.dart";
 import "package:photos/ui/viewer/file/detail_page.dart";
 import "package:photos/utils/dialog_util.dart";
 import "package:photos/utils/navigation_util.dart";
+import "package:photos/utils/network_util.dart";
 import "package:pro_image_editor/models/editor_configs/main_editor_configs.dart";
 import 'package:pro_image_editor/pro_image_editor.dart';
 
@@ -60,6 +61,15 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
 
   Future<void> saveImage(Uint8List? bytes) async {
     if (bytes == null) return;
+    
+    if (!await hasInternetConnectivity()) {
+      await showErrorDialog(
+        context,
+        AppLocalizations.of(context).noInternetConnection,
+        AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+      );
+      return;
+    }
 
     final dialog =
         createProgressDialog(context, AppLocalizations.of(context).saving);

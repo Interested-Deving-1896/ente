@@ -27,6 +27,7 @@ import "package:photos/ui/viewer/gallery/gallery.dart";
 import "package:photos/ui/viewer/gallery/state/boundary_reporter_mixin.dart";
 import "package:photos/ui/viewer/gallery/state/gallery_files_inherited_widget.dart";
 import "package:photos/utils/dialog_util.dart";
+import "package:photos/utils/network_util.dart";
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 
 Future<dynamic> showAddPhotosSheet(
@@ -134,6 +135,15 @@ class AddPhotosPhotoWidget extends StatelessWidget {
                                   labelText:
                                       AppLocalizations.of(context).addSelected,
                                   onTap: () async {
+                                    if (!await hasInternetConnectivity()) {
+                                      await showErrorDialog(
+                                        context,
+                                        AppLocalizations.of(context).noInternetConnection,
+                                        AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+                                      );
+                                      return;
+                                    }
+                                    
                                     final selectedFile = selectedFiles.files;
                                     final ca = CollectionActions(
                                       CollectionsService.instance,

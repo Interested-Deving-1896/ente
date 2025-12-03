@@ -18,6 +18,8 @@ import "package:photos/services/sync/remote_sync_service.dart";
 import "package:photos/services/sync/sync_service.dart";
 import "package:photos/ui/common/loading_widget.dart";
 import "package:photos/ui/notification/toast.dart";
+import "package:photos/utils/dialog_util.dart";
+import "package:photos/utils/network_util.dart";
 
 class UploadIconWidget extends StatefulWidget {
   final EnteFile file;
@@ -124,6 +126,16 @@ class _UpdateIconWidgetState extends State<UploadIconWidget> {
               onPressed: () async {
                 _logger.info(
                     '[UPLOAD_SYNC] Upload button pressed for file: ${widget.file.tag}',);
+                    
+                if (!await hasInternetConnectivity()) {
+                  await showErrorDialog(
+                    context,
+                    AppLocalizations.of(context).noInternetConnection,
+                    AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+                  );
+                  return;
+                }
+                
                 if (isIgnored) {
                   _logger.info(
                       '[UPLOAD_SYNC] File was ignored, removing ignored mapping',);

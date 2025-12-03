@@ -11,9 +11,11 @@ import "package:photos/ui/components/dialog_widget.dart";
 import "package:photos/ui/components/models/button_type.dart";
 import "package:photos/ui/viewer/file/detail_page.dart";
 import "package:photos/ui/viewer/file/thumbnail_widget.dart";
+import "package:photos/utils/dialog_util.dart";
 import "package:photos/utils/email_util.dart";
 import "package:photos/utils/file_uploader.dart";
 import "package:photos/utils/navigation_util.dart";
+import "package:photos/utils/network_util.dart";
 
 class BackupItemCard extends StatefulWidget {
   const BackupItemCard({
@@ -219,6 +221,15 @@ class _BackupItemCardState extends State<BackupItemCard> {
                         color: Color(0xFFFDB816),
                       ),
                       onPressed: () async {
+                        if (!await hasInternetConnectivity()) {
+                          await showErrorDialog(
+                            context,
+                            AppLocalizations.of(context).noInternetConnection,
+                            AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+                          );
+                          return;
+                        }
+                        
                         await FileUploader.instance.upload(
                           widget.item.file,
                           widget.item.collectionID,

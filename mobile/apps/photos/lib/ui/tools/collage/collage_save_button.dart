@@ -9,7 +9,9 @@ import "package:photos/ui/components/buttons/button_widget.dart";
 import "package:photos/ui/components/models/button_type.dart";
 import "package:photos/ui/notification/toast.dart";
 import "package:photos/ui/viewer/file/detail_page.dart";
+import "package:photos/utils/dialog_util.dart";
 import "package:photos/utils/navigation_util.dart";
+import "package:photos/utils/network_util.dart";
 import "package:widgets_to_image/widgets_to_image.dart";
 
 class SaveCollageButton extends StatelessWidget {
@@ -29,6 +31,15 @@ class SaveCollageButton extends StatelessWidget {
         buttonType: ButtonType.neutral,
         labelText: AppLocalizations.of(context).saveCollage,
         onTap: () async {
+          if (!await hasInternetConnectivity()) {
+            await showErrorDialog(
+              context,
+              AppLocalizations.of(context).noInternetConnection,
+              AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+            );
+            return;
+          }
+          
           try {
             final bytes = await controller.capture();
             _logger.info('Size before compression = ${bytes!.length}');

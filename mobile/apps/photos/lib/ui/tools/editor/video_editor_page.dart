@@ -29,7 +29,9 @@ import "package:photos/ui/tools/editor/video_editor/video_editor_player_control.
 import "package:photos/ui/tools/editor/video_rotate_page.dart";
 import "package:photos/ui/tools/editor/video_trim_page.dart";
 import "package:photos/ui/viewer/file/detail_page.dart";
+import "package:photos/utils/dialog_util.dart";
 import "package:photos/utils/navigation_util.dart";
+import "package:photos/utils/network_util.dart";
 import "package:video_editor/video_editor.dart";
 
 class VideoEditorPage extends StatefulWidget {
@@ -277,6 +279,15 @@ class _VideoEditorPageState extends State<VideoEditorPage> {
   }
 
   void exportVideo() async {
+    if (!await hasInternetConnectivity()) {
+      await showErrorDialog(
+        context,
+        AppLocalizations.of(context).noInternetConnection,
+        AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+      );
+      return;
+    }
+    
     final shouldUseNative = flagService.internalUser
         ? _useNativeExport
         : flagService.useNativeVideoEditor;

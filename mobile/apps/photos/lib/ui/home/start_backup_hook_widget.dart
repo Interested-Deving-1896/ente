@@ -6,7 +6,9 @@ import 'package:photos/generated/l10n.dart';
 import "package:photos/service_locator.dart";
 import 'package:photos/ui/common/gradient_button.dart';
 import 'package:photos/ui/settings/backup/backup_folder_selection_page.dart';
+import 'package:photos/utils/dialog_util.dart';
 import 'package:photos/utils/navigation_util.dart';
+import 'package:photos/utils/network_util.dart';
 
 class StartBackupHookWidget extends StatelessWidget {
   final Widget headerWidget;
@@ -42,6 +44,15 @@ class StartBackupHookWidget extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
               child: GradientButton(
                 onTap: () async {
+                  if (!await hasInternetConnectivity()) {
+                    await showErrorDialog(
+                      context,
+                      AppLocalizations.of(context).noInternetConnection,
+                      AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+                    );
+                    return;
+                  }
+                  
                   if (permissionService.hasGrantedLimitedPermissions()) {
                     unawaited(PhotoManager.presentLimited());
                   } else {
