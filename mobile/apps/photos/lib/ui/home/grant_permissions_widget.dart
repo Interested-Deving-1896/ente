@@ -122,9 +122,7 @@ class _GrantPermissionsWidgetState extends State<GrantPermissionsWidget> {
                   body: context.l10n.allowPermBody,
                   firstButtonLabel: context.l10n.openSettings,
                   firstButtonOnTap: () async {
-                    if (Platform.isIOS) {
-                      await PhotoManager.openSetting();
-                    }
+                    await PhotoManager.openSetting();
                   },
                 );
               } else {
