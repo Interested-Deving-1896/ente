@@ -19,6 +19,7 @@ import "package:photos/ui/notification/toast.dart";
 import 'package:photos/ui/sharing/user_avator_widget.dart';
 import "package:photos/ui/sharing/verify_identity_dialog.dart";
 import "package:photos/utils/separators_util.dart";
+import 'package:photos/utils/string_util.dart';
 
 enum ActionTypesToShow {
   addViewer,
@@ -153,11 +154,11 @@ class _AddParticipantPage extends State<AddParticipantPage> {
                           children: [
                             MenuItemWidget(
                               key: ValueKey(
-                                currentUser.displayName ?? currentUser.email,
+                                currentUser.displayName ?? currentUser.email.stripEmailSuffix(),
                               ),
                               captionedTextWidget: CaptionedTextWidget(
                                 title: currentUser.displayName ??
-                                    currentUser.email,
+                                    currentUser.email.stripEmailSuffix(),
                               ),
                               leadingIconSize: 24.0,
                               leadingIconWidget: UserAvatarWidget(

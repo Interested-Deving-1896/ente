@@ -99,7 +99,6 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-//            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {

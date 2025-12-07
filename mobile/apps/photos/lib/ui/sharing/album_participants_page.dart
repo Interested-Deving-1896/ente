@@ -16,6 +16,7 @@ import "package:photos/ui/sharing/add_participant_page.dart";
 import 'package:photos/ui/sharing/manage_album_participant.dart';
 import 'package:photos/ui/sharing/user_avator_widget.dart';
 import 'package:photos/utils/navigation_util.dart';
+import 'package:photos/utils/string_util.dart';
 
 class AlbumParticipantsPage extends StatefulWidget {
   final Collection collection;
@@ -303,6 +304,6 @@ class _AlbumParticipantsPageState extends State<AlbumParticipantsPage> {
     if (name != null && name.isNotEmpty) {
       return name;
     }
-    return user.email;
+    return user.email.stripEmailSuffix();
   }
 }
