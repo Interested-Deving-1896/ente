@@ -25,6 +25,7 @@ import 'package:photos/ui/sharing/user_avator_widget.dart';
 import "package:photos/utils/dialog_util.dart";
 import "package:photos/utils/person_contact_linking_util.dart";
 import "package:photos/utils/share_util.dart";
+import 'package:photos/utils/string_util.dart';
 
 class LinkEmailScreen extends StatefulWidget {
   final String? personID;
@@ -140,7 +141,7 @@ class _LinkEmailScreen extends State<LinkEmailScreen> {
                             MenuItemWidget(
                               key: ValueKey(currentUser.email),
                               captionedTextWidget: CaptionedTextWidget(
-                                title: currentUser.email,
+                                title: currentUser.email.stripEmailSuffix(),
                               ),
                               leadingIconSize: 24.0,
                               leadingIconWidget: UserAvatarWidget(

@@ -17,6 +17,7 @@ import "package:photos/theme/ente_theme.dart";
 import 'package:photos/ui/common/loading_widget.dart';
 import 'package:photos/ui/viewer/file/thumbnail_widget.dart';
 import 'package:photos/utils/dialog_util.dart';
+import 'package:photos/utils/network_util.dart';
 
 class BackupFolderSelectionPage extends StatefulWidget {
   final bool isFirstBackup;
@@ -215,6 +216,15 @@ class _BackupFolderSelectionPageState extends State<BackupFolderSelectionPage> {
   }
 
   Future<void> updateFolderSettings() async {
+    if (!await hasInternetConnectivity()) {
+      await showErrorDialog(
+        context,
+        AppLocalizations.of(context).noInternetConnection,
+        AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+      );
+      return;
+    }
+    
     final dialog = createProgressDialog(
       context,
       AppLocalizations.of(context).updatingFolderSelection,

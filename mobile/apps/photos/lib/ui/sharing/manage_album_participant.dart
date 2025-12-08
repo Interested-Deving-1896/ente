@@ -15,6 +15,7 @@ import 'package:photos/ui/components/menu_section_description_widget.dart';
 import 'package:photos/ui/components/menu_section_title.dart';
 import 'package:photos/ui/components/title_bar_title_widget.dart';
 import 'package:photos/utils/dialog_util.dart';
+import 'package:photos/utils/string_util.dart';
 
 class ManageIndividualParticipant extends StatefulWidget {
   final Collection collection;
@@ -59,7 +60,7 @@ class _ManageIndividualParticipantState
                     title: AppLocalizations.of(context).manage,
                   ),
                   Text(
-                    widget.user.displayName ?? widget.user.email,
+                    widget.user.displayName ?? widget.user.email.stripEmailSuffix(),
                     textAlign: TextAlign.left,
                     style:
                         textTheme.small.copyWith(color: colorScheme.textMuted),
@@ -118,7 +119,7 @@ class _ManageIndividualParticipantState
                             AppLocalizations.of(context).yesConvertToViewer,
                         body: AppLocalizations.of(context)
                             .cannotAddMorePhotosAfterBecomingViewer(
-                          user: widget.user.displayName ?? widget.user.email,
+                          user: widget.user.displayName ?? widget.user.email.stripEmailSuffix(),
                         ),
                         isCritical: true,
                       );

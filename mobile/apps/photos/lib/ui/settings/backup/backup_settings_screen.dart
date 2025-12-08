@@ -14,6 +14,8 @@ import 'package:photos/ui/components/menu_section_description_widget.dart';
 import 'package:photos/ui/components/title_bar_title_widget.dart';
 import 'package:photos/ui/components/title_bar_widget.dart';
 import 'package:photos/ui/components/toggle_switch_widget.dart';
+import 'package:photos/utils/dialog_util.dart';
+import 'package:photos/utils/network_util.dart';
 
 class BackupSettingsScreen extends StatelessWidget {
   const BackupSettingsScreen({super.key});
@@ -62,6 +64,14 @@ class BackupSettingsScreen extends StatelessWidget {
                                 value: () => Configuration.instance
                                     .shouldBackupOverMobileData(),
                                 onChanged: () async {
+                                  if (!await hasInternetConnectivity()) {
+                                    await showErrorDialog(
+                                      context,
+                                      AppLocalizations.of(context).noInternetConnection,
+                                      AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+                                    );
+                                    return;
+                                  }
                                   await Configuration.instance
                                       .setBackupOverMobileData(
                                     !Configuration.instance
@@ -87,10 +97,20 @@ class BackupSettingsScreen extends StatelessWidget {
                               trailingWidget: ToggleSwitchWidget(
                                 value: () =>
                                     Configuration.instance.shouldBackupVideos(),
-                                onChanged: () => Configuration.instance
+                                onChanged: () async {
+                                  if (!await hasInternetConnectivity()) {
+                                    await showErrorDialog(
+                                      context,
+                                      AppLocalizations.of(context).noInternetConnection,
+                                      AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+                                    );
+                                    return;
+                                  }
+                                  await Configuration.instance
                                     .setShouldBackupVideos(
                                   !Configuration.instance.shouldBackupVideos(),
-                                ),
+                                );
+                                },
                               ),
                               singleBorderRadius: 8,
                               alignCaptionedTextToLeft: true,

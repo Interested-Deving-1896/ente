@@ -31,6 +31,7 @@ import 'package:photos/utils/dialog_util.dart';
 import 'package:photos/utils/email_util.dart';
 import 'package:photos/utils/share_util.dart';
 import 'package:photos/utils/standalone/date_time.dart';
+import 'package:photos/utils/string_util.dart';
 import "package:styled_text/styled_text.dart";
 
 class CollectionActions {
@@ -195,7 +196,7 @@ class CollectionActions {
       ],
       title: AppLocalizations.of(context).removeWithQuestionMark,
       body: AppLocalizations.of(context)
-          .removeParticipantBody(userEmail: user.displayName ?? user.email),
+          .removeParticipantBody(userEmail: user.displayName ?? user.email.stripEmailSuffix()),
     );
     if (actionResult?.action != null) {
       if (actionResult!.action == ButtonAction.error) {

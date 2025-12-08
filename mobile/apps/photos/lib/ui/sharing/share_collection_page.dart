@@ -24,6 +24,7 @@ import 'package:photos/ui/sharing/qr_code_dialog_widget.dart';
 import 'package:photos/ui/sharing/user_avator_widget.dart';
 import 'package:photos/utils/navigation_util.dart';
 import 'package:photos/utils/share_util.dart';
+import 'package:photos/utils/string_util.dart';
 
 class ShareCollectionPage extends StatefulWidget {
   final Collection collection;
@@ -383,7 +384,7 @@ class EmailItemWidget extends StatelessWidget {
         children: [
           MenuItemWidget(
             captionedTextWidget: CaptionedTextWidget(
-              title: user?.displayName ?? user?.email ?? '',
+              title: user?.displayName ?? user?.email?.stripEmailSuffix() ?? '',
             ),
             leadingIconWidget: UserAvatarWidget(
               collection.getSharees().first,

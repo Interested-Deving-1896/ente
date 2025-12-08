@@ -1,5 +1,4 @@
 import "dart:async";
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import "package:logging/logging.dart";
@@ -122,9 +121,7 @@ class _GrantPermissionsWidgetState extends State<GrantPermissionsWidget> {
                   body: context.l10n.allowPermBody,
                   firstButtonLabel: context.l10n.openSettings,
                   firstButtonOnTap: () async {
-                    if (Platform.isIOS) {
-                      await PhotoManager.openSetting();
-                    }
+                    await PhotoManager.openSetting();
                   },
                 );
               } else {

@@ -22,6 +22,7 @@ import 'package:photos/ui/settings/storage_card_widget.dart';
 import 'package:photos/ui/settings/support_section_widget.dart';
 import 'package:photos/ui/settings/theme_switch_widget.dart';
 import "package:photos/ui/sharing/verify_identity_dialog.dart";
+import 'package:photos/utils/string_util.dart';
 
 class SettingsPage extends StatelessWidget {
   final ValueNotifier<String?> emailNotifier;
@@ -60,7 +61,7 @@ class SettingsPage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      emailNotifier.value!,
+                      emailNotifier.value!.stripEmailSuffix(),
                       style: enteTextTheme.body.copyWith(
                         color: colorScheme.textMuted,
                         overflow: TextOverflow.ellipsis,
