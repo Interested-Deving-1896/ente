@@ -69,6 +69,11 @@ func (h *UPUserHandler) SendOTT(c *gin.Context) {
 					handler.Error(c, stacktrace.Propagate(err, ""))
 					return
 				}
+				isCancelled, err := h.UserController.BillingController.UPHandleAccountDeletion(userID, logger)
+				if err != nil || isCancelled == false {
+					handler.Error(c, stacktrace.Propagate(err, ""))
+					return
+				}
 			}
 		}
 	} else {
