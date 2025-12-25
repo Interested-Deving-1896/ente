@@ -137,11 +137,67 @@ class FileViewerState extends State<FileViewer> {
               child: (() {
                 if (action.type == MediaType.image ||
                     widget.sharedMediaFile?.type == SharedMediaType.image) {
-                  return PhotoView(
-                    imageProvider: widget.sharedMediaFile?.path != null
-                        ? Image.file(File(widget.sharedMediaFile!.path)).image
-                        : MemoryImage(base64Decode(action.data!)),
-                  );
+                  try {
+                    if (widget.sharedMediaFile?.path != null) {
+                      return PhotoView(
+                        imageProvider: Image.file(File(widget.sharedMediaFile!.path)).image,
+                      );
+                    } else if (action.data != null) {
+                      // Handle content URI or base64 data
+                      if (action.data!.startsWith('content://')) {
+                        _logger.info("Trying to display image from content URI: ${action.data}");
+                        // For content URIs, show error message since they're often malformed
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline, size: 64),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Unable to load image',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Content URI cannot be resolved',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        );
+                      } else {
+                        return PhotoView(
+                          imageProvider: MemoryImage(base64Decode(action.data!)),
+                        );
+                      }
+                    } else {
+                      return const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error_outline, size: 64),
+                          SizedBox(height: 16),
+                          Text('No image data available'),
+                        ],
+                      );
+                    }
+                  } catch (e) {
+                    _logger.severe('Error displaying image: $e');
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, size: 64),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Error loading image',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          e.toString(),
+                          style: Theme.of(context).textTheme.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    );
+                  }
                 } else if (action.type == MediaType.video ||
                     widget.sharedMediaFile?.type == SharedMediaType.video) {
                   return controller != null
