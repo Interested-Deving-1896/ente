@@ -161,7 +161,7 @@ class UpdateService {
     return Platform.isAndroid
         ? const Tuple2(
             "Google Play",
-            "https://play.google.com/store/apps/details?id=io.ente.photos",
+            "https://play.google.com/store/apps/details?id=com.unplugged.photos",
           )
         : const Tuple2(
             "App Store",
