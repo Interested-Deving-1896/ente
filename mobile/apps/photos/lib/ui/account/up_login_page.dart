@@ -1,4 +1,5 @@
 import 'dart:convert';
+import "dart:io";
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,7 @@ class LoadingPage extends StatefulWidget {
 
 class _LoadingPageState extends State<LoadingPage> {
   static const MethodChannel _channel = MethodChannel('ente_login_channel');
+  static const MethodChannel _supportChannel = MethodChannel('support_channel');
   bool _isProcessing = true;
   bool _hasAttemptedLogin = false;
 
@@ -287,7 +289,6 @@ class _LoadingPageState extends State<LoadingPage> {
 
     // Ensure all async config writes are done
     await Future.delayed(const Duration(milliseconds: 100));
-    await Future(() {});
 
     // Defensive: re-check config before navigating
     if (!Configuration.instance.hasConfiguredAccount() ||
@@ -324,37 +325,15 @@ class _LoadingPageState extends State<LoadingPage> {
   Future<void> _showNoInternetDialog() async {
     _logger.info("Showing no internet connectivity dialog");
 
-    final choice = await showChoiceActionSheet(
+    await showErrorDialog(
       context,
-      title: AppLocalizations.of(context).noInternetConnection,
-      body: "No internet connection. Continue to limited gallery or exit?",
-      firstButtonLabel: AppLocalizations.of(context).limitedGallery,
-      secondButtonLabel: AppLocalizations.of(context).exit,
-      firstButtonType: ButtonType.primary,
-      secondButtonType: ButtonType.text,
-      isDismissible: false,
-      firstButtonOnTap: () async {
-        // Clear all configuration and sensitive data
-        await Configuration.instance.logout(autoLogout: true);
-        // Open gallery app via method channel
-        try {
-          await _channel.invokeMethod('openGalleryApp');
-        } catch (e) {
-          _logger.info("Failed to open gallery app: $e");
-        }
-      },
-      secondButtonOnTap: () async {
-        // Clear all configuration and sensitive data
-        await Configuration.instance.logout(autoLogout: true);
-        // Close the app completely via native method
-        await _channel.invokeMethod('destroyApp');
-      },
+      "No internet connection",
+      "It seems that you're not connected to the internet, try again later",
     );
-
-    // If dialog is dismissed somehow, still perform logout
-    if (choice == null) {
-      await Configuration.instance.logout(autoLogout: true);
-    }
+    
+    // Clear all configuration and sensitive data and exit
+    await Configuration.instance.logout(autoLogout: true);
+    exit(0);
   }
 
   Future<void> _showAuthenticationErrorDialog() async {
@@ -364,27 +343,31 @@ class _LoadingPageState extends State<LoadingPage> {
       context,
       title: "Something went wrong",
       body:
-          "An error occurred during authentication. Would you like to continue to the limited gallery?",
-      firstButtonLabel: AppLocalizations.of(context).limitedGallery,
-      secondButtonLabel: AppLocalizations.of(context).exit,
+          "An error occurred during authentication. Would you like to try again or contact support?",
+      firstButtonLabel: "Try Again",
+      secondButtonLabel: "Contact Support",
       firstButtonType: ButtonType.primary,
-      secondButtonType: ButtonType.text,
+      secondButtonType: ButtonType.neutral,
       isDismissible: false,
       firstButtonOnTap: () async {
         // Clear all configuration and sensitive data
         await Configuration.instance.logout(autoLogout: true);
-        // Open gallery app via method channel
+        // Open account app with sync_credentials action and kill app
         try {
-          await _channel.invokeMethod('openGalleryApp');
+          await _channel.invokeMethod('openAccountAppForSync');
         } catch (e) {
-          _logger.info("Failed to open gallery app: $e");
+          _logger.info("Failed to open account app for sync: $e");
         }
       },
       secondButtonOnTap: () async {
         // Clear all configuration and sensitive data
         await Configuration.instance.logout(autoLogout: true);
-        // Close the app completely via native method
-        await _channel.invokeMethod('destroyApp');
+        // Open support app via method channel
+        try {
+          await _supportChannel.invokeMethod('openSupportApp');
+        } catch (e) {
+          _logger.info("Failed to open support app: $e");
+        }
       },
     );
 

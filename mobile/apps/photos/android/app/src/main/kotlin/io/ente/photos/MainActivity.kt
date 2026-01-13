@@ -2,7 +2,6 @@ package io.ente.photos
 
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import io.flutter.embedding.android.FlutterFragmentActivity // Your existing base class
@@ -105,9 +104,9 @@ class MainActivity : FlutterFragmentActivity() {
         Log.d("UpEnte", "[DEBUG] onNewIntent called - MainActivity brought to front")
         setIntent(intent) // Important: update the activity's current intent
         
-        // Notify Flutter if this is a reorder-to-front scenario from gallery app
-        if (intent.getBooleanExtra("from_gallery", false)) {
-            Log.d("UpEnte", "[DEBUG] MainActivity brought to front from gallery app")
+        // Notify Flutter if this is a reorder-to-front scenario from login app
+        if (intent.getBooleanExtra("from_login", false)) {
+            Log.d("UpEnte", "[DEBUG] MainActivity brought to front from login app")
             methodChannel?.invokeMethod("onBroughtToFront", null)
         }
         
@@ -126,7 +125,7 @@ class MainActivity : FlutterFragmentActivity() {
             handleLoginIntent(intent)
         } else {
             Log.d("UpEnte", "[DEBUG] Intent is NOT from LoginActivity, handling as external")
-            // Handle external intents (gallery, sharing, deep links) - no credential processing
+            // Handle external intents (login, sharing, deep links) - no credential processing
             handleExternalIntent(intent)
         }
     }
@@ -209,7 +208,7 @@ class MainActivity : FlutterFragmentActivity() {
     }
     
     private fun handleExternalIntent(intent: Intent) {
-        // Handle legitimate external intents safely (gallery, sharing, deep links)
+        // Handle legitimate external intents safely (login, sharing, deep links)
         when (intent.action) {
             Intent.ACTION_VIEW,
             Intent.ACTION_PICK,

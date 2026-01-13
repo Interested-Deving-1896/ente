@@ -1,7 +1,6 @@
 package io.ente.photos
 
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
 import android.content.SharedPreferences
@@ -12,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import android.accounts.AccountManager
+import androidx.appcompat.app.AlertDialog
 
 class LoginActivity : AppCompatActivity() {
 
@@ -51,23 +51,25 @@ class LoginActivity : AppCompatActivity() {
 
                         "NO_CREDENTIALS" -> {
                             lifecycleScope.launch {
+                                val accountPackage = getString(R.string.account_intent_package)
+                                val storePackage = getString(R.string.store_intent_package)
+
+                                val targetPackage = if (isPackageInstalled(accountPackage)) {
+                                    accountPackage
+                                } else if (isPackageInstalled(storePackage)) {
+                                    storePackage
+                                } else {
+                                    Log.d("UpEnte", "Neither account app nor store found for credential generation")
+                                    return@launch
+                                }
+
                                 val generateCredentialsIntent = Intent().apply {
-                                    component = ComponentName(
-                                        this@LoginActivity.getString(R.string.account_intent_package),
-                                        ACCOUNT_ACTIVITY_CLASS_NAME
-                                    )
+                                    component = ComponentName(targetPackage, ACCOUNT_ACTIVITY_CLASS_NAME)
                                     putExtra("action", "generate_credentials")
                                 }
-                                try {
-                                    startActivity(generateCredentialsIntent)
-                                    finish()
-                                    return@launch// Exit early to prevent handleAccountLoginResponse from being called
-                                } catch (e: ActivityNotFoundException) {
-                                    Log.d(
-                                        "UpEnte",
-                                        "Failed to start account activity for credential generation: $e"
-                                    )
-                                }
+                                startActivity(generateCredentialsIntent)
+                                finish()
+                                return@launch
                             }
                         }
 
@@ -77,6 +79,8 @@ class LoginActivity : AppCompatActivity() {
 
                         "UP_UNAUTHORIZED" -> {
                             Log.d("UpEnte", "Login error: User is not logged in")
+                            openNotConnectedDialog()
+                            return@registerForActivityResult
                         }
                     }
                 }
@@ -110,19 +114,28 @@ class LoginActivity : AppCompatActivity() {
         if (savedUsername.isNullOrEmpty()) {
             // No previous login, just start account app flow
             Log.d("UpEnte", "[DEBUG] No saved username, starting account app flow")
+
+            val accountPackage = getString(R.string.account_intent_package)
+            val storePackage = getString(R.string.store_intent_package)
+
+            // Try account app first, if not installed try store
+            val targetPackage = if (isPackageInstalled(accountPackage)) {
+                Log.d("UpEnte", "[DEBUG] Account app found: $accountPackage")
+                accountPackage
+            } else if (isPackageInstalled(storePackage)) {
+                Log.d("UpEnte", "[DEBUG] Account app not found, using store: $storePackage")
+                storePackage
+            } else {
+                Log.d("UpEnte", "[DEBUG] Neither account app nor store found")
+                finish()
+                return
+            }
+
             val credentialsIntent = Intent().apply {
-                component = ComponentName(
-                    this@LoginActivity.getString(R.string.account_intent_package),
-                    ACCOUNT_ACTIVITY_CLASS_NAME
-                )
+                component = ComponentName(targetPackage, ACCOUNT_ACTIVITY_CLASS_NAME)
                 putExtra("action", "service_1")
             }
-            try {
-                accountLoginLauncher.launch(credentialsIntent)
-            } catch (e: Exception) {
-                Log.d("UpEnte", "Failed to launch account app: $e")
-                finish()
-            }
+            accountLoginLauncher.launch(credentialsIntent)
             return
         }
 
@@ -149,7 +162,7 @@ class LoginActivity : AppCompatActivity() {
             Log.d("UpEnte", "[DEBUG] Usernames match, proceeding to MainActivity")
             val openFlutterIntent = Intent(this, MainActivity::class.java).apply {
                 putExtra("username", savedUsername)
-                putExtra("from_gallery", true) // Flag to indicate this came from gallery app
+                putExtra("from_login", true) // Flag to indicate this came from gallery app
                 // Use REORDER_TO_FRONT to bring existing MainActivity to front if it exists
                 addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
@@ -178,7 +191,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         if (loginSuccess) {
-            // Only start MainActivity if the login was actually successful
+            // Only start MainActivity if the login was successful
             Log.d("UpEnte", "Proceeding to MainActivity.")
             val callSecret = generateCallSecret()
             val openFlutterIntent = Intent(this, MainActivity::class.java).apply {
@@ -186,7 +199,7 @@ class LoginActivity : AppCompatActivity() {
                 putExtra("up_token", account?.upToken)
                 putExtra("username", account?.username)
                 putExtra("call_secret", callSecret)
-                putExtra("from_gallery", true) // Flag to indicate this came from gallery app
+                putExtra("from_login", true)
                 // Use REORDER_TO_FRONT to bring existing MainActivity to front if it exists
                 addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
@@ -194,25 +207,95 @@ class LoginActivity : AppCompatActivity() {
             startActivity(openFlutterIntent)
             finish()
         } else {
-            // open gallery app and finish if login failed (except NO_CREDENTIALS, handled elsewhere)
-            Log.d("UpEnte", "Not starting MainActivity because login failed. Opening gallery app.")
-            openGalleryApp()
-            finish()
+            openErrorDialog()
         }
     }
 
-    private fun openGalleryApp() {
-        val intent = Intent().apply {
-            component =
-                ComponentName("com.android.gallery3d", "com.android.gallery3d.app.GalleryActivity")
-            putExtra("up_photos", "false")
+    private fun openErrorDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Login Error")
+            .setMessage("An error occurred while trying to login. Please try again or contact support if the problem persists.")
+            .setPositiveButton("Try Again") { _, _ ->
+                openAccountAppForSync()
+                finish()
+            }
+            .setNegativeButton("Contact Support") { _, _ ->
+                openSupportApp()
+                finish()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun openNotConnectedDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Not Connected")
+            .setMessage("You are not connected to any user. Please connect a user and try again.")
+            .setPositiveButton("Exit") { _, _ ->
+                // Clear native shared prefs
+                val sharedPrefs = getSharedPreferences("ente_prefs", MODE_PRIVATE)
+                sharedPrefs.edit().clear().apply()
+                // Clear Flutter shared prefs
+                val flutterPrefs = getSharedPreferences("FlutterSharedPreferences", MODE_PRIVATE)
+                flutterPrefs.edit().clear().apply()
+                finishAndRemoveTask()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun openAccountAppForSync() {
+        // Clear native shared prefs
+        val sharedPrefs = getSharedPreferences("ente_prefs", MODE_PRIVATE)
+        sharedPrefs.edit().clear().apply()
+
+        val accountPackage = getString(R.string.account_intent_package)
+        val storePackage = getString(R.string.store_intent_package)
+
+        val targetPackage = if (isPackageInstalled(accountPackage)) {
+            accountPackage
+        } else if (isPackageInstalled(storePackage)) {
+            storePackage
+        } else {
+            Log.d("UpEnte", "Neither account app nor store found")
+            return
         }
+
         try {
+            val intent = Intent().apply {
+                component = ComponentName(targetPackage, ACCOUNT_ACTIVITY_CLASS_NAME)
+                putExtra("action", "sync_credentials")
+            }
             startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            Log.d("UpEnte", "Gallery app not found, finishing LoginActivity")
-            // If gallery app is not available, just finish the activity
-            finish()
+        } catch (e: Exception) {
+            Log.e("UpEnte", "Failed to open account app for sync", e)
+        }
+    }
+
+    private fun openSupportApp() {
+        // Clear native shared prefs
+        val sharedPrefs = getSharedPreferences("ente_prefs", MODE_PRIVATE)
+        sharedPrefs.edit().clear().apply()
+
+        try {
+            val supportIntent = packageManager.getLaunchIntentForPackage("com.unplugged.support")
+            if (supportIntent != null) {
+                supportIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(supportIntent)
+            } else {
+                Log.e("UpEnte", "Support app not found on device")
+            }
+        } catch (e: Exception) {
+            Log.e("UpEnte", "Failed to open support app", e)
+        }
+    }
+
+    private fun isPackageInstalled(packageName: String): Boolean {
+        return try {
+            packageManager.getPackageInfo(packageName, 0)
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 
