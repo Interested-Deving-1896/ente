@@ -8,7 +8,6 @@ import 'package:logging/logging.dart';
 import 'package:photos/core/configuration.dart';
 import 'package:photos/core/event_bus.dart';
 import 'package:photos/events/account_configured_event.dart';
-import 'package:photos/generated/l10n.dart';
 import 'package:photos/models/account/Account.dart';
 import 'package:photos/models/api/user/key_attributes.dart';
 import 'package:photos/models/api/user/key_gen_result.dart';
@@ -338,6 +337,44 @@ class _LoadingPageState extends State<LoadingPage> {
 
   Future<void> _showAuthenticationErrorDialog() async {
     _logger.info("[DEBUG] Showing authentication error dialog");
+
+    final choice = await showChoiceActionSheet(
+      context,
+      title: "Something went wrong",
+      body:
+          "An error occurred during authentication. Please contact support if the problem persists.",
+      firstButtonLabel: "Contact Support",
+      secondButtonLabel: "Exit",
+      firstButtonType: ButtonType.primary,
+      secondButtonType: ButtonType.neutral,
+      isDismissible: false,
+      firstButtonOnTap: () async {
+        // Clear all configuration and sensitive data
+        await Configuration.instance.logout(autoLogout: true);
+        // Open support app via method channel
+        try {
+          await _supportChannel.invokeMethod('openSupportApp');
+        } catch (e) {
+          _logger.info("Failed to open support app: $e");
+        }
+      },
+      secondButtonOnTap: () async {
+        // Clear all configuration and sensitive data
+        await Configuration.instance.logout(autoLogout: true);
+        exit(0);
+      },
+    );
+
+    // If dialog is dismissed somehow, still perform logout
+    if (choice == null) {
+      await Configuration.instance.logout(autoLogout: true);
+    }
+  }
+
+  // Hidden for now - keeping logic for future use with account app
+  // ignore: unused_element
+  Future<void> _showAuthenticationErrorDialogWithRetry() async {
+    _logger.info("[DEBUG] Showing authentication error dialog with retry");
 
     final choice = await showChoiceActionSheet(
       context,

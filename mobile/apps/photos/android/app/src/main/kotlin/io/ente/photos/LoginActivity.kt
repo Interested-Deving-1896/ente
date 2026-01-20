@@ -214,6 +214,29 @@ class LoginActivity : AppCompatActivity() {
     private fun openErrorDialog() {
         AlertDialog.Builder(this)
             .setTitle("Login Error")
+            .setMessage("An error occurred while trying to login. Please contact support if the problem persists.")
+            .setPositiveButton("Contact Support") { _, _ ->
+                openSupportApp()
+                finish()
+            }
+            .setNegativeButton("Exit") { _, _ ->
+                // Clear native shared prefs
+                val sharedPrefs = getSharedPreferences("ente_prefs", MODE_PRIVATE)
+                sharedPrefs.edit().clear().apply()
+                // Clear Flutter shared prefs
+                val flutterPrefs = getSharedPreferences("FlutterSharedPreferences", MODE_PRIVATE)
+                flutterPrefs.edit().clear().apply()
+                finishAndRemoveTask()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    // Hidden for now - keeping logic for future use with account app
+    @Suppress("unused")
+    private fun openErrorDialogWithRetry() {
+        AlertDialog.Builder(this)
+            .setTitle("Login Error")
             .setMessage("An error occurred while trying to login. Please try again or contact support if the problem persists.")
             .setPositiveButton("Try Again") { _, _ ->
                 openAccountAppForSync()
