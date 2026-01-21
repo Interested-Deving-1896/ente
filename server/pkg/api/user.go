@@ -672,5 +672,6 @@ func (h *UserHandler) VerifySRPSession(c *gin.Context) {
 		handler.Error(c, stacktrace.Propagate(err, ""))
 		return
 	}
+	logrus.WithField("response", response).Info("VerifySRPSession response")
 	c.JSON(http.StatusOK, response)
 }
