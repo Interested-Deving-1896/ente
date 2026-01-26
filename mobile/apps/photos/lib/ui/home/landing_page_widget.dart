@@ -110,7 +110,7 @@ class _LandingPageWidgetState extends State<LandingPageWidget> {
                 : const SizedBox(),
             const Padding(padding: EdgeInsets.all(12)),
             const Text(
-              "UP Photos",
+              "Cloud photos",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Montserrat',

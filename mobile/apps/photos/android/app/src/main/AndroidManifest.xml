@@ -90,11 +90,6 @@
             android:exported="true"
             android:icon="@mipmap/unplugged_gallery"
             android:targetActivity=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <!-- NO android.intent.category.LAUNCHER here -->
-            </intent-filter>
         </activity-alias>
         <activity-alias
             android:name="${applicationId}.IconLight"
@@ -181,11 +176,14 @@
             android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|uiMode"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
     </application>
 
-    <!-- Android 11: https://developer.android.com/preview/privacy/package-visibility -->
-    <!-- https://developer.android.com/training/package-visibility/use-cases -->
     <queries>
         <intent>
             <action android:name="android.intent.action.SENDTO" />

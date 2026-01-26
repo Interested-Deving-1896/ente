@@ -313,6 +313,7 @@ Future<ButtonResult?> showChoiceActionSheet(
     body: body,
     buttons: buttons,
     isDismissible: isDismissible,
+    enableDrag: isDismissible,
   );
 }
 

@@ -310,26 +310,19 @@ class _FreeUpSpaceOptionsScreenState extends State<FreeUpSpaceOptionsScreen> {
       localSettings.setRateUsShownCount(
         localSettings.getRateUsShownCount() + 1,
       );
-      showChoiceDialog(
+      showErrorDialog(
         context,
-        title: AppLocalizations.of(context).success,
-        body: AppLocalizations.of(context)
+        AppLocalizations.of(context).success,
+        AppLocalizations.of(context)
             .youHaveSuccessfullyFreedUp(storageSaved: formatBytes(status.size)),
-        firstButtonLabel: AppLocalizations.of(context).rateUs,
-        firstButtonOnTap: () async {
-          await updateService.launchReviewUrl();
-        },
-        firstButtonType: ButtonType.primary,
-        secondButtonLabel: AppLocalizations.of(context).ok,
-        secondButtonOnTap: () async {
-          if (Platform.isIOS) {
-            showToast(
-              context,
-              AppLocalizations.of(context).remindToEmptyDeviceTrash,
-            );
-          }
-        },
-      );
+      ).then((_) {
+        if (Platform.isIOS) {
+          showToast(
+            context,
+            AppLocalizations.of(context).remindToEmptyDeviceTrash,
+          );
+        }
+      });
     } else {
       showDialogWidget(
         context: context,
@@ -358,25 +351,18 @@ class _FreeUpSpaceOptionsScreenState extends State<FreeUpSpaceOptionsScreen> {
   }
 
   void _showDuplicateFilesDeletedDialog(DeduplicationResult result) {
-    showChoiceDialog(
+    showErrorDialog(
       context,
-      title: AppLocalizations.of(context).sparkleSuccess,
-      body: AppLocalizations.of(context).duplicateFileCountWithStorageSaved(
+      AppLocalizations.of(context).sparkleSuccess,
+      AppLocalizations.of(context).duplicateFileCountWithStorageSaved(
         count: result.count,
         storageSaved: formatBytes(result.size),
       ),
-      firstButtonLabel: AppLocalizations.of(context).rateUs,
-      firstButtonOnTap: () async {
-        await updateService.launchReviewUrl();
-      },
-      firstButtonType: ButtonType.primary,
-      secondButtonLabel: AppLocalizations.of(context).ok,
-      secondButtonOnTap: () async {
-        showShortToast(
-          context,
-          AppLocalizations.of(context).remindToEmptyEnteTrash,
-        );
-      },
-    );
+    ).then((_) {
+      showShortToast(
+        context,
+        AppLocalizations.of(context).remindToEmptyEnteTrash,
+      );
+    });
   }
 }
