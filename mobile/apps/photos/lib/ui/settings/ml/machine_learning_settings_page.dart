@@ -15,7 +15,6 @@ import "package:photos/services/remote_assets_service.dart";
 import "package:photos/services/wake_lock_service.dart";
 import "package:photos/theme/ente_theme.dart";
 import "package:photos/ui/common/loading_widget.dart";
-import "package:photos/ui/common/web_page.dart";
 import "package:photos/ui/components/buttons/button_widget.dart";
 import "package:photos/ui/components/buttons/icon_button_widget.dart";
 import "package:photos/ui/components/captioned_text_widget.dart";
@@ -178,23 +177,23 @@ class _MachineLearningSettingsPageState
                             await toggleMlConsent();
                           },
                         ),
-                        const SizedBox(height: 12),
-                        ButtonWidget(
-                          buttonType: ButtonType.secondary,
-                          labelText: context.l10n.moreDetails,
-                          onTap: () async {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (BuildContext context) {
-                                  return WebPage(
-                                    AppLocalizations.of(context).help,
-                                    "https://ente.io/help/photos/features/machine-learning",
-                                  );
-                                },
-                              ),
-                            ).ignore();
-                          },
-                        ),
+                        // const SizedBox(height: 12),
+                        // ButtonWidget(
+                        //   buttonType: ButtonType.secondary,
+                        //   labelText: context.l10n.moreDetails,
+                        //   onTap: () async {
+                        //     Navigator.of(context).push(
+                        //       MaterialPageRoute(
+                        //         builder: (BuildContext context) {
+                        //           return WebPage(
+                        //             AppLocalizations.of(context).help,
+                        //             "https://ente.io/help/photos/features/machine-learning",
+                        //           );
+                        //         },
+                        //       ),
+                        //     ).ignore();
+                        //   },
+                        // ),
                         const SizedBox(height: 12),
                         Text(
                           AppLocalizations.of(context).magicSearchHint,
