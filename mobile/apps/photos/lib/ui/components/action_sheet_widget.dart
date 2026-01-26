@@ -35,7 +35,7 @@ Future<ButtonResult?> showActionSheet({
     isDismissible: isDismissible,
     enableDrag: enableDrag,
     builder: (_) {
-      return ActionSheetWidget(
+      final sheet = ActionSheetWidget(
         title: title,
         bodyWidget: bodyWidget,
         body: body,
@@ -44,6 +44,14 @@ Future<ButtonResult?> showActionSheet({
         actionSheetType: actionSheetType,
         isCheckIconGreen: isCheckIconGreen,
       );
+      // Prevent back button dismissal when not dismissible
+      if (!isDismissible) {
+        return PopScope(
+          canPop: false,
+          child: sheet,
+        );
+      }
+      return sheet;
     },
   );
 }

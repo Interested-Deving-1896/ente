@@ -333,26 +333,19 @@ class _GalleryAppBarWidgetState extends State<GalleryAppBarWidget> {
   }
 
   void _showSpaceFreedDialog(BackupStatus status) {
-    showChoiceDialog(
+    showErrorDialog(
       context,
-      title: AppLocalizations.of(context).success,
-      body: AppLocalizations.of(context)
+      AppLocalizations.of(context).success,
+      AppLocalizations.of(context)
           .youHaveSuccessfullyFreedUp(storageSaved: formatBytes(status.size)),
-      firstButtonLabel: AppLocalizations.of(context).rateUs,
-      firstButtonOnTap: () async {
-        await updateService.launchReviewUrl();
-      },
-      firstButtonType: ButtonType.primary,
-      secondButtonLabel: AppLocalizations.of(context).ok,
-      secondButtonOnTap: () async {
-        if (Platform.isIOS) {
-          showToast(
-            context,
-            AppLocalizations.of(context).remindToEmptyDeviceTrash,
-          );
-        }
-      },
-    );
+    ).then((_) {
+      if (Platform.isIOS) {
+        showToast(
+          context,
+          AppLocalizations.of(context).remindToEmptyDeviceTrash,
+        );
+      }
+    });
   }
 
   List<Widget> _getDefaultActions(BuildContext context) {
