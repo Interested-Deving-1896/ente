@@ -18,16 +18,15 @@ class HeaderErrorWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
         child: NotificationWidget(
           startIcon: Icons.info_rounded,
-          actionIcon: Icons.arrow_forward,
           text: AppLocalizations.of(context).subscribe,
           subText: AppLocalizations.of(context).yourSubscriptionHasExpired,
-          onTap: () async => {
-            await routeToPage(
-              context,
-              getSubscriptionPage(),
-              forceCustomPageRoute: true,
-            ),
-          },
+          // onTap: () async => {
+          //   await routeToPage(
+          //     context,
+          //     getSubscriptionPage(),
+          //     forceCustomPageRoute: true,
+          //   ),
+          // },
         ),
       );
     } else if (_error is StorageLimitExceededError) {
@@ -35,16 +34,15 @@ class HeaderErrorWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
         child: NotificationWidget(
           startIcon: Icons.disc_full_rounded,
-          actionIcon: Icons.arrow_forward,
           text: AppLocalizations.of(context).upgrade,
           subText: AppLocalizations.of(context).storageLimitExceeded,
-          onTap: () async => {
-            await routeToPage(
-              context,
-              getSubscriptionPage(),
-              forceCustomPageRoute: true,
-            ),
-          },
+          // onTap: () async => {
+          //   await routeToPage(
+          //     context,
+          //     getSubscriptionPage(),
+          //     forceCustomPageRoute: true,
+          //   ),
+          // },
         ),
       );
     } else {
@@ -52,17 +50,16 @@ class HeaderErrorWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
         child: NotificationWidget(
           startIcon: Icons.error_outline_rounded,
-          actionIcon: Icons.arrow_forward,
           text: AppLocalizations.of(context).backupFailed,
           subText: AppLocalizations.of(context).couldNotBackUpTryLater,
-          onTap: () async => {
-            sendLogs(
-              context,
-              AppLocalizations.of(context).raiseTicket,
-              "support@ente.io",
-              subject: AppLocalizations.of(context).backupFailed,
-            ),
-          },
+          // onTap: () async => {
+          //   sendLogs(
+          //     context,
+          //     AppLocalizations.of(context).raiseTicket,
+          //     "support@ente.io",
+          //     subject: AppLocalizations.of(context).backupFailed,
+          //   ),
+          // },
         ),
       );
     }
