@@ -154,7 +154,8 @@ class _AddParticipantPage extends State<AddParticipantPage> {
                           children: [
                             MenuItemWidget(
                               key: ValueKey(
-                                currentUser.displayName ?? currentUser.email.stripEmailSuffix(),
+                                currentUser.displayName ??
+                                    currentUser.email.stripEmailSuffix(),
                               ),
                               captionedTextWidget: CaptionedTextWidget(
                                 title: currentUser.displayName ??

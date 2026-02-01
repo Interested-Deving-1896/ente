@@ -125,26 +125,30 @@ class _UpdateIconWidgetState extends State<UploadIconWidget> {
               ),
               onPressed: () async {
                 _logger.info(
-                    '[UPLOAD_SYNC] Upload button pressed for file: ${widget.file.tag}',);
-                    
+                  '[UPLOAD_SYNC] Upload button pressed for file: ${widget.file.tag}',
+                );
+
                 if (!await hasInternetConnectivity()) {
                   await showErrorDialog(
                     context,
                     AppLocalizations.of(context).noInternetConnection,
-                    AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+                    AppLocalizations.of(context)
+                        .pleaseCheckYourInternetConnectionAndTryAgain,
                   );
                   return;
                 }
-                
+
                 if (isIgnored) {
                   _logger.info(
-                      '[UPLOAD_SYNC] File was ignored, removing ignored mapping',);
+                    '[UPLOAD_SYNC] File was ignored, removing ignored mapping',
+                  );
                   await IgnoredFilesService.instance
                       .removeIgnoredMappings([widget.file]);
                 }
                 if (widget.file.collectionID == null) {
                   _logger.info(
-                      '[UPLOAD_SYNC] File has no collectionID, assigning to uncategorized',);
+                    '[UPLOAD_SYNC] File has no collectionID, assigning to uncategorized',
+                  );
                   widget.file.collectionID = (await CollectionsService.instance
                           .getUncategorizedCollection())
                       .id;

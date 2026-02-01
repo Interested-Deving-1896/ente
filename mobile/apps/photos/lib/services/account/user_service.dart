@@ -101,9 +101,6 @@ class UserService {
     await dialog.show();
     try {
       final Account? account = accountNotifier.value;
-      _logger.info(
-          "Account4 username: ${account?.username}, uptoken: ${account?.upToken} ,  password: ${account?.servicePassword}",);
-
       final response = await _dio.post(
         _config.getHttpEndpoint() + "/users/up/ott",
         data: {
@@ -176,10 +173,13 @@ class UserService {
     }
   }
 
-  Future<Map<String, dynamic>?> sendOttForAutomation(String? upStoreToken,
-      {String? purpose,}) async {
+  Future<Map<String, dynamic>?> sendOttForAutomation(
+    String? upStoreToken, {
+    String? purpose,
+  }) async {
     _logger.info(
-        "Attempting to send OTT for automation for purpose: $purpose, upStoreToken: ${upStoreToken != null ? "[REDACTED]" : "null"}",);
+      "Attempting to send OTT for automation for purpose: $purpose, upStoreToken: ${upStoreToken != null ? "[REDACTED]" : "null"}",
+    );
     try {
       final response = await _dio.post(
         _config.getHttpEndpoint() + "/users/up/ott",
@@ -193,26 +193,33 @@ class UserService {
         ),
       );
 
-      _logger.info("sendOttForAutomation: Received response with status: ",
-          response.statusCode,);
+      _logger.info(
+        "sendOttForAutomation: Received response with status: ",
+        response.statusCode,
+      );
       if (response.statusCode == 200) {
         final responseData = response.data as Map<String, dynamic>;
         _logger.info("sendOttForAutomation: Response data: $responseData");
         return responseData;
       } else {
         _logger.severe(
-            "sendOttForAutomation: Failed to receive OTT session token. Status: ",
-            response.statusCode,);
+          "sendOttForAutomation: Failed to receive OTT session token. Status: ",
+          response.statusCode,
+        );
         return null;
       }
     } on DioException catch (e) {
       _logger.severe(
-          "sendOttForAutomation: DioException while sending OTT. Error: $e",
-          e.response?.data,);
+        "sendOttForAutomation: DioException while sending OTT. Error: $e",
+        e.response?.data,
+      );
       return null;
     } catch (e, s) {
       _logger.severe(
-          "sendOttForAutomation: Generic error while sending OTT.", e, s,);
+        "sendOttForAutomation: Generic error while sending OTT.",
+        e,
+        s,
+      );
       return null;
     }
   }
@@ -641,7 +648,8 @@ class UserService {
   Future<void> setAttributes(KeyGenResult result) async {
     try {
       _logger.info(
-          "setAttributes: Registering or updating SRP and setting key attributes",);
+        "setAttributes: Registering or updating SRP and setting key attributes",
+      );
       await registerOrUpdateSrp(result.loginKey);
       await _enteDio.put(
         "/users/attributes",
@@ -1354,7 +1362,8 @@ class UserService {
       return;
     }
     _logger.info(
-        "_saveConfiguration: Saving userID: " + responseData["id"].toString(),);
+      "_saveConfiguration: Saving userID: " + responseData["id"].toString(),
+    );
     await Configuration.instance.setUserID(responseData["id"]);
     if (responseData["encryptedToken"] != null) {
       _logger
@@ -1364,10 +1373,14 @@ class UserService {
       await Configuration.instance.setKeyAttributes(
         KeyAttributes.fromMap(responseData["keyAttributes"]),
       );
-      _logger.info("_saveConfiguration: Saved keyAttributes: " +
-          KeyAttributes.fromMap(responseData["keyAttributes"]).toJson(),);
-      _logger.info("_saveConfiguration: Saved encryptedToken: " +
-          responseData["encryptedToken"].toString(),);
+      _logger.info(
+        "_saveConfiguration: Saved keyAttributes: " +
+            KeyAttributes.fromMap(responseData["keyAttributes"]).toJson(),
+      );
+      _logger.info(
+        "_saveConfiguration: Saved encryptedToken: " +
+            responseData["encryptedToken"].toString(),
+      );
     } else {
       _logger.info("_saveConfiguration: Saving plain token");
       await Configuration.instance.setToken(responseData["token"]);

@@ -10,13 +10,16 @@ Future<MediaExtentionAction> initIntentAction() async {
   MediaExtentionAction mediaExtensionAction;
   try {
     mediaExtensionAction = await mediaExtensionPlugin.getIntentAction();
-    _logger.info("Raw intent action: ${mediaExtensionAction.action}, type: ${mediaExtensionAction.type}, data: ${mediaExtensionAction.data}");
-    
+    _logger.info(
+        "Raw intent action: ${mediaExtensionAction.action}, type: ${mediaExtensionAction.type}, data: ${mediaExtensionAction.data}");
+
     // Fix incorrect type detection for content URIs
-    if (mediaExtensionAction.action == IntentAction.view && mediaExtensionAction.data != null) {
+    if (mediaExtensionAction.action == IntentAction.view &&
+        mediaExtensionAction.data != null) {
       final correctedAction = _correctMediaType(mediaExtensionAction);
       if (correctedAction != mediaExtensionAction) {
-        _logger.info("Corrected media type from ${mediaExtensionAction.type} to ${correctedAction.type}");
+        _logger.info(
+            "Corrected media type from ${mediaExtensionAction.type} to ${correctedAction.type}");
         mediaExtensionAction = correctedAction;
       }
     }
@@ -33,9 +36,9 @@ Future<MediaExtentionAction> initIntentAction() async {
 MediaExtentionAction _correctMediaType(MediaExtentionAction original) {
   final data = original.data;
   if (data == null) return original;
-  
+
   // Check if it's an image content URI
-  if (data.contains('content://media/external/images') || 
+  if (data.contains('content://media/external/images') ||
       data.contains('image/') ||
       data.toLowerCase().contains('.jpg') ||
       data.toLowerCase().contains('.jpeg') ||
@@ -49,9 +52,9 @@ MediaExtentionAction _correctMediaType(MediaExtentionAction original) {
       data: original.data,
     );
   }
-  
-  // Check if it's a video content URI  
-  if (data.contains('content://media/external/video') || 
+
+  // Check if it's a video content URI
+  if (data.contains('content://media/external/video') ||
       data.contains('video/') ||
       data.toLowerCase().contains('.mp4') ||
       data.toLowerCase().contains('.mov') ||
@@ -63,6 +66,6 @@ MediaExtentionAction _correctMediaType(MediaExtentionAction original) {
       data: original.data,
     );
   }
-  
+
   return original;
 }

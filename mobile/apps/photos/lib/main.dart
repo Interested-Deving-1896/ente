@@ -84,11 +84,6 @@ Future<void> main() async {
         try {
           final receivedAccount = Account.fromMap(accountMap);
           accountNotifier.value = receivedAccount;
-          _logger.info(
-              "[DEBUG] account 4: user name: ${accountNotifier.value?.username}, uptoken: X${accountNotifier.value?.upToken}X, password: ${accountNotifier.value?.servicePassword}",);
-
-          _logger.info(
-              "[DEBUG] Account details received in Flutter: \${receivedAccount.username}",);
         } catch (e, s) {
           _logger.info("[DEBUG] Failed to parse account from native", e, s);
         }

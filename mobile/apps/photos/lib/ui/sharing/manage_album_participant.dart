@@ -60,7 +60,8 @@ class _ManageIndividualParticipantState
                     title: AppLocalizations.of(context).manage,
                   ),
                   Text(
-                    widget.user.displayName ?? widget.user.email.stripEmailSuffix(),
+                    widget.user.displayName ??
+                        widget.user.email.stripEmailSuffix(),
                     textAlign: TextAlign.left,
                     style:
                         textTheme.small.copyWith(color: colorScheme.textMuted),
@@ -119,7 +120,8 @@ class _ManageIndividualParticipantState
                             AppLocalizations.of(context).yesConvertToViewer,
                         body: AppLocalizations.of(context)
                             .cannotAddMorePhotosAfterBecomingViewer(
-                          user: widget.user.displayName ?? widget.user.email.stripEmailSuffix(),
+                          user: widget.user.displayName ??
+                              widget.user.email.stripEmailSuffix(),
                         ),
                         isCritical: true,
                       );

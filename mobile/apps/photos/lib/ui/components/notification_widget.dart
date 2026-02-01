@@ -21,7 +21,7 @@ class NotificationWidget extends StatelessWidget {
   final Widget? actionWidget;
   final String text;
   final String? subText;
-  final GestureTapCallback onTap;
+  final GestureTapCallback? onTap;
   final NotificationType type;
   final bool isBlackFriday;
   final TextStyle? mainTextStyle;
@@ -29,9 +29,9 @@ class NotificationWidget extends StatelessWidget {
   const NotificationWidget({
     super.key,
     required this.startIcon,
-    required this.actionIcon,
+    this.actionIcon,
     required this.text,
-    required this.onTap,
+    this.onTap,
     this.mainTextStyle,
     this.isBlackFriday = false,
     this.subText,

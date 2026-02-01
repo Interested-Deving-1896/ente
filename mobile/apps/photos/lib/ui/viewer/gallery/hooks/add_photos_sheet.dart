@@ -138,12 +138,14 @@ class AddPhotosPhotoWidget extends StatelessWidget {
                                     if (!await hasInternetConnectivity()) {
                                       await showErrorDialog(
                                         context,
-                                        AppLocalizations.of(context).noInternetConnection,
-                                        AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+                                        AppLocalizations.of(context)
+                                            .noInternetConnection,
+                                        AppLocalizations.of(context)
+                                            .pleaseCheckYourInternetConnectionAndTryAgain,
                                       );
                                       return;
                                     }
-                                    
+
                                     final selectedFile = selectedFiles.files;
                                     final ca = CollectionActions(
                                       CollectionsService.instance,

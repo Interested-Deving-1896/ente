@@ -1,13 +1,16 @@
 package io.ente.photos
 
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
-import io.flutter.embedding.android.FlutterFragmentActivity // Your existing base class
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugins.GeneratedPluginRegistrant // Keep this
+import io.flutter.plugins.GeneratedPluginRegistrant
 import android.accounts.AccountManager
 
 class MainActivity : FlutterFragmentActivity() {
@@ -93,24 +96,92 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Resolve duplicate/invalid media URIs before calling super to prevent plugin crash
+        extractAndClearMediaUri(intent)
         super.onCreate(savedInstanceState)
-        overridePendingTransition(0,0)
+        overridePendingTransition(0, 0)
         handleIntent(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
+        // Resolve duplicate/invalid media URIs before calling super to prevent plugin crash
+        extractAndClearMediaUri(intent)
         super.onNewIntent(intent)
-        // Handle intent if MainActivity is already running (e.g., singleTask or reordered to front)
+
         Log.d("UpEnte", "[DEBUG] onNewIntent called - MainActivity brought to front")
-        setIntent(intent) // Important: update the activity's current intent
-        
-        // Notify Flutter if this is a reorder-to-front scenario from login app
+        setIntent(intent)
+
         if (intent.getBooleanExtra("from_login", false)) {
             Log.d("UpEnte", "[DEBUG] MainActivity brought to front from login app")
             methodChannel?.invokeMethod("onBroughtToFront", null)
         }
-        
+
         handleIntent(intent)
+    }
+
+    /**
+     * Checks if the intent is a media intent (VIEW, SEND, etc. with image/video).
+     */
+    private fun isMediaIntent(intent: Intent): Boolean {
+        val isMediaAction = intent.action in listOf(
+            Intent.ACTION_VIEW,
+            Intent.ACTION_SEND,
+            Intent.ACTION_SEND_MULTIPLE,
+            Intent.ACTION_PICK,
+            Intent.ACTION_GET_CONTENT
+        )
+        val hasMediaType = intent.type?.startsWith("image/") == true ||
+                intent.type?.startsWith("video/") == true
+        val hasMediaData = intent.data?.toString()?.contains("media") == true
+
+        return isMediaAction && (hasMediaType || hasMediaData || intent.data != null)
+    }
+
+    /**
+     * For media intents, resolves duplicate/invalid URIs to a valid single-item URI.
+     * Returns the original URI if resolution is not needed.
+     */
+    private fun extractAndClearMediaUri(intent: Intent): Uri? {
+        if (!isMediaIntent(intent)) return null
+
+        val uri = intent.data ?: return null
+        Log.d("UpEnte", "[DEBUG] Processing media URI: $uri")
+
+        // Try to resolve the URI to handle duplicates
+        val resolvedUri = resolveToSingleItemUri(uri)
+        if (resolvedUri != null && resolvedUri != uri) {
+            Log.d("UpEnte", "[DEBUG] Resolved duplicate URI: $uri -> $resolvedUri")
+            intent.data = resolvedUri
+        }
+        return uri
+    }
+
+    /**
+     * Resolves a content URI to a specific single-item URI.
+     * This handles the "Multiple items" error by querying and picking the first item.
+     */
+    private fun resolveToSingleItemUri(uri: Uri): Uri? {
+        try {
+            val uriString = uri.toString()
+            // Only process media store URIs that might have duplicates
+            if (!uriString.startsWith("content://media/external/")) return null
+
+            val projection = arrayOf(MediaStore.MediaColumns._ID)
+            contentResolver.query(uri, projection, null, null, "${MediaStore.MediaColumns._ID} LIMIT 1")?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                    val baseUri = when {
+                        uriString.contains("/images/") -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        uriString.contains("/video/") -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                        else -> return null
+                    }
+                    return ContentUris.withAppendedId(baseUri, id)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("UpEnte", "[DEBUG] Error resolving URI to single item: ${e.message}")
+        }
+        return null
     }
 
     private fun handleIntent(intent: Intent?) {

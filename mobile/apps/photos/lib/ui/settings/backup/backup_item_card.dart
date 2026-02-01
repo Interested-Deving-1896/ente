@@ -225,11 +225,12 @@ class _BackupItemCardState extends State<BackupItemCard> {
                           await showErrorDialog(
                             context,
                             AppLocalizations.of(context).noInternetConnection,
-                            AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+                            AppLocalizations.of(context)
+                                .pleaseCheckYourInternetConnectionAndTryAgain,
                           );
                           return;
                         }
-                        
+
                         await FileUploader.instance.upload(
                           widget.item.file,
                           widget.item.collectionID,

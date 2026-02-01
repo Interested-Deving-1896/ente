@@ -283,11 +283,12 @@ class _VideoEditorPageState extends State<VideoEditorPage> {
       await showErrorDialog(
         context,
         AppLocalizations.of(context).noInternetConnection,
-        AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+        AppLocalizations.of(context)
+            .pleaseCheckYourInternetConnectionAndTryAgain,
       );
       return;
     }
-    
+
     final shouldUseNative = flagService.internalUser
         ? _useNativeExport
         : flagService.useNativeVideoEditor;
