@@ -87,7 +87,8 @@ class AdvancedSettingsScreen extends StatelessWidget {
                           routeToPage(
                             context,
                             const GallerySettingsScreen(
-                                fromGalleryLayoutSettingsCTA: false,),
+                              fromGalleryLayoutSettingsCTA: false,
+                            ),
                           );
                         },
                       ),

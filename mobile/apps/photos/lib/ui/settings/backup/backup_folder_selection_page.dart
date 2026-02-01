@@ -220,11 +220,12 @@ class _BackupFolderSelectionPageState extends State<BackupFolderSelectionPage> {
       await showErrorDialog(
         context,
         AppLocalizations.of(context).noInternetConnection,
-        AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+        AppLocalizations.of(context)
+            .pleaseCheckYourInternetConnectionAndTryAgain,
       );
       return;
     }
-    
+
     final dialog = createProgressDialog(
       context,
       AppLocalizations.of(context).updatingFolderSelection,

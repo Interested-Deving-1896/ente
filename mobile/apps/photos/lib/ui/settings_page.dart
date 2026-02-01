@@ -99,7 +99,7 @@ class SettingsPage extends StatelessWidget {
       contents.addAll([
         const StorageCardWidget(),
         const SizedBox(
-            height: 16,), // Add margin between storage card and backup section
+          height: 16,), // Add margin between storage card and backup section
         const BackupSectionWidget(),
         sectionSpacing,
       ]);

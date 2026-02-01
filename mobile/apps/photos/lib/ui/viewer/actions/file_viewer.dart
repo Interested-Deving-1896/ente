@@ -140,12 +140,15 @@ class FileViewerState extends State<FileViewer> {
                   try {
                     if (widget.sharedMediaFile?.path != null) {
                       return PhotoView(
-                        imageProvider: Image.file(File(widget.sharedMediaFile!.path)).image,
+                        imageProvider:
+                            Image.file(File(widget.sharedMediaFile!.path))
+                                .image,
                       );
                     } else if (action.data != null) {
                       // Handle content URI or base64 data
                       if (action.data!.startsWith('content://')) {
-                        _logger.info("Trying to display image from content URI: ${action.data}");
+                        _logger.info(
+                            "Trying to display image from content URI: ${action.data}");
                         // For content URIs, show error message since they're often malformed
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -165,7 +168,8 @@ class FileViewerState extends State<FileViewer> {
                         );
                       } else {
                         return PhotoView(
-                          imageProvider: MemoryImage(base64Decode(action.data!)),
+                          imageProvider:
+                              MemoryImage(base64Decode(action.data!)),
                         );
                       }
                     } else {

@@ -35,11 +35,12 @@ class SaveCollageButton extends StatelessWidget {
             await showErrorDialog(
               context,
               AppLocalizations.of(context).noInternetConnection,
-              AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+              AppLocalizations.of(context)
+                  .pleaseCheckYourInternetConnectionAndTryAgain,
             );
             return;
           }
-          
+
           try {
             final bytes = await controller.capture();
             _logger.info('Size before compression = ${bytes!.length}');

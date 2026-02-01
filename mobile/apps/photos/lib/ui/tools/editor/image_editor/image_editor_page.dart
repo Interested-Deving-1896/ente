@@ -61,12 +61,13 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
 
   Future<void> saveImage(Uint8List? bytes) async {
     if (bytes == null) return;
-    
+
     if (!await hasInternetConnectivity()) {
       await showErrorDialog(
         context,
         AppLocalizations.of(context).noInternetConnection,
-        AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+        AppLocalizations.of(context)
+            .pleaseCheckYourInternetConnectionAndTryAgain,
       );
       return;
     }

@@ -67,8 +67,10 @@ class BackupSettingsScreen extends StatelessWidget {
                                   if (!await hasInternetConnectivity()) {
                                     await showErrorDialog(
                                       context,
-                                      AppLocalizations.of(context).noInternetConnection,
-                                      AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+                                      AppLocalizations.of(context)
+                                          .noInternetConnection,
+                                      AppLocalizations.of(context)
+                                          .pleaseCheckYourInternetConnectionAndTryAgain,
                                     );
                                     return;
                                   }
@@ -101,15 +103,18 @@ class BackupSettingsScreen extends StatelessWidget {
                                   if (!await hasInternetConnectivity()) {
                                     await showErrorDialog(
                                       context,
-                                      AppLocalizations.of(context).noInternetConnection,
-                                      AppLocalizations.of(context).pleaseCheckYourInternetConnectionAndTryAgain,
+                                      AppLocalizations.of(context)
+                                          .noInternetConnection,
+                                      AppLocalizations.of(context)
+                                          .pleaseCheckYourInternetConnectionAndTryAgain,
                                     );
                                     return;
                                   }
                                   await Configuration.instance
-                                    .setShouldBackupVideos(
-                                  !Configuration.instance.shouldBackupVideos(),
-                                );
+                                      .setShouldBackupVideos(
+                                    !Configuration.instance
+                                        .shouldBackupVideos(),
+                                  );
                                 },
                               ),
                               singleBorderRadius: 8,
