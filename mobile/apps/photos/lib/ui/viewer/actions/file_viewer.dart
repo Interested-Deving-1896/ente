@@ -148,7 +148,7 @@ class FileViewerState extends State<FileViewer> {
                       // Handle content URI or base64 data
                       if (action.data!.startsWith('content://')) {
                         _logger.info(
-                            "Trying to display image from content URI: ${action.data}");
+                            "Trying to display image from content URI: ${action.data}",);
                         // For content URIs, show error message since they're often malformed
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,
