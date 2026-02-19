@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photos/core/errors.dart';
-import "package:photos/generated/l10n.dart";
+// import "package:photos/generated/l10n.dart";
 import "package:photos/ui/components/notification_widget.dart";
-import 'package:photos/ui/payment/subscription.dart';
-import 'package:photos/utils/email_util.dart';
-import "package:photos/utils/navigation_util.dart";
 
 class HeaderErrorWidget extends StatelessWidget {
   final Error? _error;
@@ -18,15 +15,11 @@ class HeaderErrorWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
         child: NotificationWidget(
           startIcon: Icons.info_rounded,
-          text: AppLocalizations.of(context).subscribe,
-          subText: AppLocalizations.of(context).yourSubscriptionHasExpired,
-          // onTap: () async => {
-          //   await routeToPage(
-          //     context,
-          //     getSubscriptionPage(),
-          //     forceCustomPageRoute: true,
-          //   ),
-          // },
+          // text: AppLocalizations.of(context).subscribe,
+          // subText: AppLocalizations.of(context).yourSubscriptionHasExpired,
+          text: "Subscribe",
+          subText:
+              "Your subscription has expired. Upgrade your plan in the App Center",
         ),
       );
     } else if (_error is StorageLimitExceededError) {
@@ -34,15 +27,11 @@ class HeaderErrorWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
         child: NotificationWidget(
           startIcon: Icons.disc_full_rounded,
-          text: AppLocalizations.of(context).upgrade,
-          subText: AppLocalizations.of(context).storageLimitExceeded,
-          // onTap: () async => {
-          //   await routeToPage(
-          //     context,
-          //     getSubscriptionPage(),
-          //     forceCustomPageRoute: true,
-          //   ),
-          // },
+          // text: AppLocalizations.of(context).upgrade,
+          // subText: AppLocalizations.of(context).storageLimitExceeded,
+          text: "Upgrade",
+          subText:
+              "Your storage is full. Upgrade your plan in the App Center",
         ),
       );
     } else {
@@ -50,16 +39,10 @@ class HeaderErrorWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
         child: NotificationWidget(
           startIcon: Icons.error_outline_rounded,
-          text: AppLocalizations.of(context).backupFailed,
-          subText: AppLocalizations.of(context).couldNotBackUpTryLater,
-          // onTap: () async => {
-          //   sendLogs(
-          //     context,
-          //     AppLocalizations.of(context).raiseTicket,
-          //     "support@ente.io",
-          //     subject: AppLocalizations.of(context).backupFailed,
-          //   ),
-          // },
+          // text: AppLocalizations.of(context).backupFailed,
+          // subText: AppLocalizations.of(context).couldNotBackUpTryLater,
+          text: "Backup failed",
+          subText: "Backup error, try again later or contact support",
         ),
       );
     }

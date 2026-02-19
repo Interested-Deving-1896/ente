@@ -11,7 +11,7 @@ Future<MediaExtentionAction> initIntentAction() async {
   try {
     mediaExtensionAction = await mediaExtensionPlugin.getIntentAction();
     _logger.info(
-        "Raw intent action: ${mediaExtensionAction.action}, type: ${mediaExtensionAction.type}, data: ${mediaExtensionAction.data}");
+        "Raw intent action: ${mediaExtensionAction.action}, type: ${mediaExtensionAction.type}, data: ${mediaExtensionAction.data}",);
 
     // Fix incorrect type detection for content URIs
     if (mediaExtensionAction.action == IntentAction.view &&
@@ -19,7 +19,7 @@ Future<MediaExtentionAction> initIntentAction() async {
       final correctedAction = _correctMediaType(mediaExtensionAction);
       if (correctedAction != mediaExtensionAction) {
         _logger.info(
-            "Corrected media type from ${mediaExtensionAction.type} to ${correctedAction.type}");
+            "Corrected media type from ${mediaExtensionAction.type} to ${correctedAction.type}",);
         mediaExtensionAction = correctedAction;
       }
     }
